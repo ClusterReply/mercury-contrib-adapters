@@ -5,7 +5,7 @@
 
 #region Using Directives
 using System;
-
+using System.Linq;
 using Microsoft.ServiceModel.Channels.Common;
 #endregion
 
@@ -16,6 +16,7 @@ namespace Reply.Cluster.Mercury.Adapters.AdoNet
     /// </summary>
     public class AdoNetAdapterConnectionUri : ConnectionUri
     {
+        private const string PROVIDER_KEY = "adoNetProvider";
 
         #region Custom Generated Fields
 
@@ -45,7 +46,7 @@ namespace Reply.Cluster.Mercury.Adapters.AdoNet
         public AdoNetAdapterConnectionUri(Uri uri)
             : base()
         {
-
+            this.Uri = uri;
         }
 
         #endregion Constructors
@@ -118,17 +119,54 @@ namespace Reply.Cluster.Mercury.Adapters.AdoNet
         {
             get
             {
-                //
-                //TODO: Return the composed uri in valid format
-                //
-                throw new NotImplementedException("The method or operation is not implemented.");
+                if (string.IsNullOrWhiteSpace(connectionName))
+                    throw new InvalidOperationException("The connection name must have value.");
+
+                var builder = new UriBuilder(AdoNetAdapter.SCHEME, connectionName);
+
+                if (!string.IsNullOrWhiteSpace(inboundID))
+                    builder.Path = inboundID;
+
+                var queryBuilder = new System.Text.StringBuilder();
+
+                if (!string.IsNullOrWhiteSpace(providerName))
+                    queryBuilder.AppendFormat("{0}={1}&", PROVIDER_KEY, providerName);
+
+                if (!string.IsNullOrWhiteSpace(connectionString))
+                {
+                    var csBuilder = new System.Data.Common.DbConnectionStringBuilder { ConnectionString = connectionString };
+
+                    foreach (string key in csBuilder.Keys)
+                        queryBuilder.AppendFormat("{0}={1}&", key, csBuilder[key]);
+                }
+
+                if (queryBuilder[queryBuilder.Length - 1] == '&')
+                    queryBuilder.Remove(queryBuilder.Length - 1, 1);
+
+                if (queryBuilder.Length > 0)
+                    builder.Query = queryBuilder.ToString();
+
+                return builder.Uri;
             }
             set
             {
-                //
-                //TODO: Parse the uri into its relevant parts to produce a valid Uri object. (For example scheme, host, query).
-                //
-                throw new NotImplementedException("The method or operation is not implemented.");
+                if (value.Scheme != AdoNetAdapter.SCHEME)
+                    throw new InvalidUriException(string.Format("Invalid scheme '{0}', was expected '{1}'.", value.Scheme, AdoNetAdapter.SCHEME));
+
+                connectionName = value.Host;
+                inboundID = value.Segments.Where(s => (s != "/") && (s != @"\")).FirstOrDefault();
+
+                var query = System.Web.HttpUtility.ParseQueryString(value.Query);
+
+                providerName = query.Get(PROVIDER_KEY);
+
+                var builder = new System.Data.Common.DbConnectionStringBuilder();
+
+                foreach (string key in query.Keys)
+                    if (string.Compare(key, PROVIDER_KEY, true) != 0)
+                        builder.Add(key, query.Get(key));
+
+                connectionString = builder.ConnectionString;
             }
         }
 

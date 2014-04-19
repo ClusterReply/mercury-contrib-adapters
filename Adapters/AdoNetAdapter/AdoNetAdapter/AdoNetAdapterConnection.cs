@@ -10,6 +10,8 @@ using System.Collections.Generic;
 using System.Text;
 
 using Microsoft.ServiceModel.Channels.Common;
+using System.Data.Common;
+using System.Data;
 #endregion
 
 namespace Reply.Cluster.Mercury.Adapters.AdoNet
@@ -22,6 +24,12 @@ namespace Reply.Cluster.Mercury.Adapters.AdoNet
         private string connectionId;
 
         #endregion Private Fields
+
+        #region Custom Private Fields
+
+        private DbConnection connection;
+
+        #endregion Custom Private Fields
 
         /// <summary>
         /// Initializes a new instance of the AdoNetAdapterConnection class with the AdoNetAdapterConnectionFactory
@@ -54,10 +62,7 @@ namespace Reply.Cluster.Mercury.Adapters.AdoNet
         /// </summary>
         public void Close(TimeSpan timeout)
         {
-            //
-            //TODO: Implement physical closing of the connection
-            //
-            throw new NotImplementedException("The method or operation is not implemented.");
+            connection.Close();
         }
 
         /// <summary>
@@ -65,10 +70,7 @@ namespace Reply.Cluster.Mercury.Adapters.AdoNet
         /// </summary>
         public bool IsValid(TimeSpan timeout)
         {
-            //
-            //TODO: Implement physical checking for the validity of the opened connection
-            //
-            throw new NotImplementedException("The method or operation is not implemented.");
+            return connection.State == ConnectionState.Open;
 
         }
 
@@ -77,23 +79,13 @@ namespace Reply.Cluster.Mercury.Adapters.AdoNet
         /// </summary>
         public void Open(TimeSpan timeout)
         {
-            //
-            //TODO: Implement physical opening of the connection
-            //
-            throw new NotImplementedException("The method or operation is not implemented.");
-
+            connection.Open();
         }
 
         /// <summary>
         /// Clears the context of the Connection. This method is called when the connection is set back to the connection pool
         /// </summary>
-        public void ClearContext()
-        {
-            //
-            //TODO: Implement clear context to set the connection back to the pool.
-            //
-            throw new NotImplementedException("The method or operation is not implemented.");
-        }
+        public void ClearContext() { }
 
         /// <summary>
         /// Builds a new instance of the specified IConnectionHandler type
