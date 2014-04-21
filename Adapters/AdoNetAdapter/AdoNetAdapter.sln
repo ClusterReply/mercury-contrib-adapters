@@ -7,6 +7,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AdoNetAdapter", "AdoNetAdap
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AdoNetAdapter.Tests", "AdoNetAdapter.Tests\AdoNetAdapter.Tests.csproj", "{AD53ABFE-B713-4894-82CC-08FC35F61336}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Helpers", "..\Helpers\Helpers.csproj", "{6B46A1EC-FD51-4F40-B325-7401DEB3F37B}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Adapters", "Adapters", "{8629AE16-36AA-4613-88B3-D910BE84E982}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,8 +25,15 @@ Global
 		{AD53ABFE-B713-4894-82CC-08FC35F61336}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AD53ABFE-B713-4894-82CC-08FC35F61336}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AD53ABFE-B713-4894-82CC-08FC35F61336}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6B46A1EC-FD51-4F40-B325-7401DEB3F37B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6B46A1EC-FD51-4F40-B325-7401DEB3F37B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6B46A1EC-FD51-4F40-B325-7401DEB3F37B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6B46A1EC-FD51-4F40-B325-7401DEB3F37B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{6B46A1EC-FD51-4F40-B325-7401DEB3F37B} = {8629AE16-36AA-4613-88B3-D910BE84E982}
 	EndGlobalSection
 EndGlobal

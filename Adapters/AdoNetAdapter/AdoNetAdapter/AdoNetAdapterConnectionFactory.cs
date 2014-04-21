@@ -35,6 +35,8 @@ namespace Reply.Cluster.Mercury.Adapters.AdoNet
         {
             this.clientCredentials = clientCredentials;
             this.adapter = adapter;
+
+            this.ConnectionUri = connectionUri as AdoNetAdapterConnectionUri;
         }
 
         #region Public Properties
@@ -49,6 +51,11 @@ namespace Reply.Cluster.Mercury.Adapters.AdoNet
                 return this.adapter;
             }
         }
+
+        /// <summary>
+        /// Returns the Connection Uri for this adapter
+        /// </summary>
+        public AdoNetAdapterConnectionUri ConnectionUri { get; private set; }
 
         #endregion Public Properties
 

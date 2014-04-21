@@ -25,12 +25,6 @@ namespace Reply.Cluster.Mercury.Adapters.AdoNet
 
         #endregion Private Fields
 
-        #region Custom Private Fields
-
-        private DbConnection connection;
-
-        #endregion Custom Private Fields
-
         /// <summary>
         /// Initializes a new instance of the AdoNetAdapterConnection class with the AdoNetAdapterConnectionFactory
         /// </summary>
@@ -55,31 +49,54 @@ namespace Reply.Cluster.Mercury.Adapters.AdoNet
 
         #endregion Public Properties
 
+        #region Custom Internal Properties
+
+        internal string connectionString;
+        internal DbProviderFactory providerFactory;
+
+        #endregion Custom Private Fields
+
         #region IConnection Members
 
         /// <summary>
         /// Closes the connection to the target system
         /// </summary>
-        public void Close(TimeSpan timeout)
-        {
-            connection.Close();
-        }
+        public void Close(TimeSpan timeout) { }
 
         /// <summary>
         /// Returns a value indicating whether the connection is still valid
         /// </summary>
         public bool IsValid(TimeSpan timeout)
         {
-            return connection.State == ConnectionState.Open;
-
+            return true;
         }
 
         /// <summary>
         /// Opens the connection to the target system.
         /// </summary>
-        public void Open(TimeSpan timeout)
-        {
-            connection.Open();
+        public void Open(TimeSpan timeout) 
+        { 
+            var uri = ConnectionFactory.ConnectionUri;
+            
+            string name = uri.ConnectionName;
+            string provider = uri.ProviderName;
+            string connectionString = uri.ConnectionString;
+
+            if (string.IsNullOrEmpty(provider) || string.IsNullOrEmpty(connectionString))
+            {
+                var csElement = System.Configuration.ConfigurationManager.ConnectionStrings[name];
+
+                if (string.IsNullOrEmpty(provider))
+                    provider = csElement.ProviderName;
+
+                if (string.IsNullOrEmpty(connectionString))
+                    connectionString = csElement.ConnectionString;
+            }
+
+            this.providerFactory = DbProviderFactories.GetFactory(provider);
+            this.connectionString = connectionString;
+
+            // TODO: gestione delle eccezioni
         }
 
         /// <summary>
@@ -121,13 +138,7 @@ namespace Reply.Cluster.Mercury.Adapters.AdoNet
         /// <summary>
         /// Aborts the connection to the target system
         /// </summary>
-        public void Abort()
-        {
-            //
-            //TODO: Implement abort logic. DO NOT throw an exception from this method
-            //
-            throw new NotImplementedException("The method or operation is not implemented.");
-        }
+        public void Abort() { }
 
 
         /// <summary>
@@ -142,5 +153,17 @@ namespace Reply.Cluster.Mercury.Adapters.AdoNet
         }
 
         #endregion IConnection Members
+
+        #region Internal Members
+
+        internal DbConnection CreateDbConnection()
+        {
+            var connection = providerFactory.CreateConnection();
+            connection.ConnectionString = connectionString;
+
+            return connection;
+        }
+
+        #endregion Internal Members
     }
 }

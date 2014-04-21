@@ -104,4 +104,10 @@
       <Install>false</Install>
     </BootstrapperPackage>
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Helpers\Helpers.csproj">
+      <Project>{6b46a1ec-fd51-4f40-b325-7401deb3f37b}</Project>
+      <Name>Helpers</Name>
+    </ProjectReference>
+  </ItemGroup>
 </Project>

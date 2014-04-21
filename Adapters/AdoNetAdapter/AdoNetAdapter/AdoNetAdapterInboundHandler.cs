@@ -9,6 +9,10 @@ using System.Collections.Generic;
 using System.Text;
 
 using Microsoft.ServiceModel.Channels.Common;
+using System.ServiceModel.Channels;
+using System.Collections.Concurrent;
+using System.Threading;
+using System.Xml;
 #endregion
 
 namespace Reply.Cluster.Mercury.Adapters.AdoNet
@@ -22,7 +26,26 @@ namespace Reply.Cluster.Mercury.Adapters.AdoNet
             , MetadataLookup metadataLookup)
             : base(connection, metadataLookup)
         {
+            pollingTimer = new System.Timers.Timer((double)connection.ConnectionFactory.Adapter.PollingInterval * 1000);
+            pollingTimer.Elapsed += pollingTimer_Elapsed;
+
+            UriBuilder actionBuilder = new UriBuilder(AdoNetAdapter.SERVICENAMESPACE);
+            actionBuilder.Path = System.IO.Path.Combine(actionBuilder.Path, connection.ConnectionFactory.ConnectionUri.ConnectionName);
+            actionBuilder.Path = System.IO.Path.Combine(actionBuilder.Path, "Receive");
+            actionBuilder.Path = System.IO.Path.Combine(actionBuilder.Path, connection.ConnectionFactory.ConnectionUri.InboundID);
+
+            action = actionBuilder.ToString();
         }
+
+        #region Private Fields
+
+        private string action;
+
+        private System.Timers.Timer pollingTimer;
+        private BlockingCollection<Message> queue = new BlockingCollection<Message>();
+        private CancellationTokenSource cancelSource = new CancellationTokenSource();
+
+        #endregion Private Fields
 
         #region IInboundHandler Members
 
@@ -31,10 +54,7 @@ namespace Reply.Cluster.Mercury.Adapters.AdoNet
         /// </summary>
         public void StartListener(string[] actions, TimeSpan timeout)
         {
-            //
-            //TODO: Implement start adapter listener logic.
-            //
-            throw new NotImplementedException("The method or operation is not implemented.");
+            pollingTimer.Start();
         }
 
         /// <summary>
@@ -42,10 +62,9 @@ namespace Reply.Cluster.Mercury.Adapters.AdoNet
         /// </summary>
         public void StopListener(TimeSpan timeout)
         {
-            //
-            //TODO: Implement stop adapter listener logic.
-            //
-            throw new NotImplementedException("The method or operation is not implemented.");
+            pollingTimer.Stop();
+            queue.CompleteAdding();
+            cancelSource.Cancel();
         }
 
         /// <summary>
@@ -54,10 +73,12 @@ namespace Reply.Cluster.Mercury.Adapters.AdoNet
         public bool TryReceive(TimeSpan timeout, out System.ServiceModel.Channels.Message message, out IInboundReply reply)
         {
             reply = new AdoNetAdapterInboundReply();
-            //
-            //TODO: Implement Try Receive logic.
-            //
-            throw new NotImplementedException("The method or operation is not implemented.");
+            message = null;
+
+            if (queue.IsCompleted)
+                return false;
+
+            return queue.TryTake(out message, (int)timeout.TotalMilliseconds, cancelSource.Token);
         }
 
         /// <summary>
@@ -65,13 +86,129 @@ namespace Reply.Cluster.Mercury.Adapters.AdoNet
         /// </summary>
         public bool WaitForMessage(TimeSpan timeout)
         {
-            //
-            //TODO: Implement Wait for message logic.
-            //
-            throw new NotImplementedException("The method or operation is not implemented.");
+            // TODO: vedere se fare una logica più sensata
+
+            return !queue.IsCompleted;
         }
 
         #endregion IInboundHandler Members
+
+        #region Event Handlers
+
+        private void pollingTimer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
+        {
+            ExecutePolling();
+        }
+
+        private void ExecutePolling()
+        {
+            string dataAvailableStatement = Connection.ConnectionFactory.Adapter.DataAvailableStatement;
+            string getDataStatement = Connection.ConnectionFactory.Adapter.GetDataStatement;
+            string endOperationStatement = Connection.ConnectionFactory.Adapter.EndOperationStatement;
+
+            using (var connection = Connection.CreateDbConnection())
+            {
+                bool dataAvailable = true;
+
+                if (!string.IsNullOrWhiteSpace(dataAvailableStatement))
+                {
+                    var dataAvailableCommand = connection.CreateCommand();
+                    dataAvailableCommand.CommandText = dataAvailableStatement;
+
+                    int? count = dataAvailableCommand.ExecuteScalar() as int?;
+                    dataAvailable = count.HasValue && (count > 0);
+                }
+                
+                if (dataAvailable)
+                {
+                    bool goOn = Connection.ConnectionFactory.Adapter.PollWhileDataFound;
+
+                    do
+                    {
+                        if (queue.IsAddingCompleted)
+                            return;
+
+                        var getDataCommand = connection.CreateCommand();
+                        getDataCommand.CommandText = getDataStatement;
+
+                        var reader = getDataCommand.ExecuteReader();
+
+                        if (reader.HasRows)
+                        {
+                            queue.Add(CreateMessage(reader));
+
+                            if (!string.IsNullOrWhiteSpace(endOperationStatement))
+                            {
+                                var endOperationCommand = connection.CreateCommand();
+                                endOperationCommand.CommandText = endOperationStatement;
+
+                                endOperationCommand.ExecuteNonQuery();
+                            }
+                        }
+                        else
+                            goOn = false;
+                    } while (goOn);
+                }
+            }
+        }
+
+        #endregion Event Handlers
+
+        #region Private Members
+
+        private Message CreateMessage(System.Data.Common.DbDataReader reader)
+        {
+            string ns = AdoNetAdapter.SERVICENAMESPACE + "/Messages";
+
+            using (var stream = new System.IO.MemoryStream())
+            {
+                using (var writer = XmlWriter.Create(stream))
+                {
+                    writer.WriteStartElement("InboundData", ns);
+
+                    do
+                    {
+                        writer.WriteStartElement("ResultSet", ns);
+
+                        while (reader.Read())
+                        {
+                            writer.WriteStartElement("Row", ns);
+
+                            for (int i = 0; i < reader.FieldCount; i++)
+                            {
+                                // TODO: conversione del tipo
+
+                                writer.WriteElementString(reader.GetName(i), ns, reader.GetString(i));
+                            }
+                            
+                            writer.WriteEndElement();
+                        }
+
+                        writer.WriteEndElement();
+                    } while (reader.NextResult());
+
+                    writer.Flush();
+                    stream.Seek(0, System.IO.SeekOrigin.Begin);
+
+                    using (var xmlReader = XmlReader.Create(stream))
+                        return Message.CreateMessage(MessageVersion.Default, action, xmlReader);
+                }
+            }
+        }
+
+        #endregion Private Members
+
+        #region IDisposable Members
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                pollingTimer.Dispose();
+            }
+        }
+
+        #endregion IDisposable Members
     }
     internal class AdoNetAdapterInboundReply : InboundReply
     {
@@ -81,25 +218,14 @@ namespace Reply.Cluster.Mercury.Adapters.AdoNet
         /// Abort the inbound reply call
         /// </summary>
         public override void Abort()
-        {
-            //
-            //TODO: Implement abort logic.
-            //
-            throw new NotImplementedException("The method or operation is not implemented.");
-        }
+        { }
 
         /// <summary>
         /// Reply message implemented
         /// </summary>
         public override void Reply(System.ServiceModel.Channels.Message message
             , TimeSpan timeout)
-        {
-            //
-            //TODO: Implement reply logic.
-            //
-            throw new NotImplementedException("The method or operation is not implemented.");
-
-        }
+        { }
 
 
         #endregion InboundReply Members
