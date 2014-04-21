@@ -33,10 +33,24 @@ namespace Reply.Cluster.Mercury.Adapters.AdoNet
         /// </summary>
         public Message Execute(Message message, TimeSpan timeout)
         {
-            //
-            //TODO: Implement Execute
-            //
-            throw new NotImplementedException("The method or operation is not implemented.");
+            // TODO: differenziazione delle operazioni
+
+            string action = message.Headers.Action;
+            var operation = this.MetadataLookup.GetOperationDefinitionFromInputMessageAction(action, timeout);
+
+            using (var connection = Connection.CreateDbConnection())
+            {
+                var command = connection.CreateCommand();
+                command.CommandType = System.Data.CommandType.StoredProcedure;
+                command.CommandText = operation.OriginalName;
+
+                command.Parameters.AddRange(DbHelpers.CreateParameters(message, command));
+
+                using (var reader = command.ExecuteReader())
+                {
+                    return DbHelpers.CreateMessage(reader, operation.InputMessageAction);
+                }
+            }
         }
 
         #endregion IOutboundHandler Members

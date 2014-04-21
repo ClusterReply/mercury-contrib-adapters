@@ -74,6 +74,7 @@
     <Compile Include="AdoNetAdapterTrace.cs" />
     <Compile Include="AdoNetAdapterConnectionUri.cs" />
     <Compile Include="AssemblyInfo.cs" />
+    <Compile Include="DbHelpers.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Microsoft.ServiceModel.Channels, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL" />

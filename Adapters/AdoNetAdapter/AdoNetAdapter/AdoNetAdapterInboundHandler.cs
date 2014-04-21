@@ -135,7 +135,7 @@ namespace Reply.Cluster.Mercury.Adapters.AdoNet
 
                         if (reader.HasRows)
                         {
-                            queue.Add(CreateMessage(reader));
+                            queue.Add(DbHelpers.CreateMessage(reader, action));
 
                             if (!string.IsNullOrWhiteSpace(endOperationStatement))
                             {
@@ -153,50 +153,6 @@ namespace Reply.Cluster.Mercury.Adapters.AdoNet
         }
 
         #endregion Event Handlers
-
-        #region Private Members
-
-        private Message CreateMessage(System.Data.Common.DbDataReader reader)
-        {
-            string ns = AdoNetAdapter.SERVICENAMESPACE + "/Messages";
-
-            using (var stream = new System.IO.MemoryStream())
-            {
-                using (var writer = XmlWriter.Create(stream))
-                {
-                    writer.WriteStartElement("InboundData", ns);
-
-                    do
-                    {
-                        writer.WriteStartElement("ResultSet", ns);
-
-                        while (reader.Read())
-                        {
-                            writer.WriteStartElement("Row", ns);
-
-                            for (int i = 0; i < reader.FieldCount; i++)
-                            {
-                                // TODO: conversione del tipo
-
-                                writer.WriteElementString(reader.GetName(i), ns, reader.GetString(i));
-                            }
-                            
-                            writer.WriteEndElement();
-                        }
-
-                        writer.WriteEndElement();
-                    } while (reader.NextResult());
-
-                    writer.Flush();
-                    stream.Seek(0, System.IO.SeekOrigin.Begin);
-
-                    using (var xmlReader = XmlReader.Create(stream))
-                        return Message.CreateMessage(MessageVersion.Default, action, xmlReader);
-                }
-            }
-        }
-
-        #endregion Private Members
 
         #region IDisposable Members
 
