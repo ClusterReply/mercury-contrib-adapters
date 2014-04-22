@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data.Common;
 using System.Linq;
+using System.Runtime.Serialization;
 using System.ServiceModel.Channels;
 using System.Text;
 using System.Threading.Tasks;
@@ -11,6 +12,8 @@ namespace Reply.Cluster.Mercury.Adapters.AdoNet
 {
     static class DbHelpers
     {
+        private static DataContractSerializer objectSerializer = new DataContractSerializer(typeof(object));
+
         public static Message CreateMessage(DbDataReader reader, string action)
         {
             string ns = AdoNetAdapter.SERVICENAMESPACE + "/Messages";
@@ -30,12 +33,8 @@ namespace Reply.Cluster.Mercury.Adapters.AdoNet
                             writer.WriteStartElement("Row", ns);
 
                             for (int i = 0; i < reader.FieldCount; i++)
-                            {
-                                // TODO: conversione del tipo
-
-                                writer.WriteElementString(reader.GetName(i), ns, reader.GetString(i));
-                            }
-
+                                objectSerializer.WriteObjectContent(writer, reader[i]);
+                        
                             writer.WriteEndElement();
                         }
 
@@ -51,27 +50,20 @@ namespace Reply.Cluster.Mercury.Adapters.AdoNet
             }
         }
 
-        public static Array CreateParameters(Message message, DbCommand command)
+        public static DbParameter[] CreateParameters(XmlReader reader, DbCommand command)
         {
             var parameters = new List<DbParameter>();
 
-            using (var reader = message.GetReaderAtBodyContents())
+            while (reader.Read())
             {
-                reader.MoveToStartElement();
+                string name = reader.LocalName;
+                object value = objectSerializer.ReadObject(reader, false);
 
-                while (reader.Read())
-                {
-                    // TODO: conversione del tipo
+                var parameter = command.CreateParameter();
+                parameter.ParameterName = name;
+                parameter.Value = value;
 
-                    string name = reader.Name;
-                    string value = reader.ReadString();
-
-                    var parameter = command.CreateParameter();
-                    parameter.ParameterName = name;
-                    parameter.Value = value;
-
-                    parameters.Add(parameter);
-                }
+                parameters.Add(parameter);
             }
 
             return parameters.ToArray();

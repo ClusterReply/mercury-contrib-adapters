@@ -16,6 +16,9 @@ namespace Reply.Cluster.Mercury.Adapters.AdoNet
 {
     public class AdoNetAdapterOutboundHandler : AdoNetAdapterHandlerBase, IOutboundHandler
     {
+        private static System.Text.RegularExpressions.Regex operationExp = 
+            new System.Text.RegularExpressions.Regex(@"^(?<Type>Procedure|Create|Read|Update|Delete)/(?<Target>.+)$");
+
         /// <summary>
         /// Initializes a new instance of the AdoNetAdapterOutboundHandler class
         /// </summary>
@@ -33,24 +36,58 @@ namespace Reply.Cluster.Mercury.Adapters.AdoNet
         /// </summary>
         public Message Execute(Message message, TimeSpan timeout)
         {
-            // TODO: differenziazione delle operazioni
-
             string action = message.Headers.Action;
             var operation = this.MetadataLookup.GetOperationDefinitionFromInputMessageAction(action, timeout);
 
-            using (var connection = Connection.CreateDbConnection())
+            var match = operationExp.Match(operation.UniqueId);
+
+            if (!match.Success)
+                throw new InvalidOperationException();
+
+            string operationType = match.Groups["Type"].Value;
+            string operationTarget = match.Groups["Target"].Value;
+
+            using (var bodyReader = message.GetReaderAtBodyContents())
             {
-                var command = connection.CreateCommand();
-                command.CommandType = System.Data.CommandType.StoredProcedure;
-                command.CommandText = operation.OriginalName;
-
-                command.Parameters.AddRange(DbHelpers.CreateParameters(message, command));
-
-                using (var reader = command.ExecuteReader())
+                using (var connection = Connection.CreateDbConnection())
                 {
-                    return DbHelpers.CreateMessage(reader, operation.InputMessageAction);
+                    if (operationType == "Procedure")
+                    {
+                        var command = connection.CreateCommand();
+
+                        command.CommandType = System.Data.CommandType.StoredProcedure;
+                        command.CommandText = operationTarget;
+
+                        bodyReader.MoveToContent();
+                        command.Parameters.AddRange(DbHelpers.CreateParameters(bodyReader.ReadSubtree(), command));
+
+                        // TODO: parametri in uscita
+
+                        using (var reader = command.ExecuteReader())
+                        {
+                            return DbHelpers.CreateMessage(reader, operation.InputMessageAction);
+                        }
+                    }
+                    else if (operationType == "Create")
+                    {
+
+                    }
+                    else if (operationType == "Read")
+                    {
+
+                    }
+                    else if (operationType == "Update")
+                    {
+
+                    }
+                    else if (operationType == "Delete")
+                    {
+
+                    }
                 }
             }
+
+            return null;
         }
 
         #endregion IOutboundHandler Members
