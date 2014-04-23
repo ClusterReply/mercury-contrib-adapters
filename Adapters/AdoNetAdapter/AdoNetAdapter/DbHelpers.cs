@@ -6,6 +6,7 @@ using System.Runtime.Serialization;
 using System.ServiceModel.Channels;
 using System.Text;
 using System.Threading.Tasks;
+using System.Transactions;
 using System.Xml;
 
 namespace Reply.Cluster.Mercury.Adapters.AdoNet
@@ -15,6 +16,11 @@ namespace Reply.Cluster.Mercury.Adapters.AdoNet
         private static DataContractSerializer objectSerializer = new DataContractSerializer(typeof(object));
 
         public static Message CreateMessage(DbDataReader reader, string action)
+        {
+            return CreateMessage(reader, null, action);
+        }
+
+        public static Message CreateMessage(DbDataReader reader, Transaction transaction, string action)
         {
             string ns = AdoNetAdapter.SERVICENAMESPACE + "/Messages";
 
@@ -46,7 +52,14 @@ namespace Reply.Cluster.Mercury.Adapters.AdoNet
                     stream.Seek(0, System.IO.SeekOrigin.Begin);
 
                     using (var xmlReader = XmlReader.Create(stream))
-                        return Message.CreateMessage(MessageVersion.Default, action, xmlReader);
+                    {
+                        var message = Message.CreateMessage(MessageVersion.Default, action, xmlReader);
+
+                        if (transaction != null)
+                            TransactionMessageProperty.Set(transaction, message);
+
+                        return message;
+                    }
                 }
             }
         }

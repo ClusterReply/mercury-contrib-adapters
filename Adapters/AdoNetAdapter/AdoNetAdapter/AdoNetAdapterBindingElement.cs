@@ -109,6 +109,22 @@ namespace Reply.Cluster.Mercury.Adapters.AdoNet
 
 
 
+        [System.Configuration.ConfigurationProperty("isolationLevel", DefaultValue = System.Transactions.IsolationLevel.ReadCommitted)]
+        [System.ComponentModel.Category("Transactions")]
+        public System.Transactions.IsolationLevel IsolationLevel
+        {
+            get
+            {
+                return ((System.Transactions.IsolationLevel)(base["IsolationLevel"]));
+            }
+            set
+            {
+                base["IsolationLevel"] = value;
+            }
+        }
+
+
+
         [System.Configuration.ConfigurationProperty("pollWhileDataFound", DefaultValue = false)]
         [System.ComponentModel.Category("Schedule")]
         public bool PollWhileDataFound
@@ -169,6 +185,7 @@ namespace Reply.Cluster.Mercury.Adapters.AdoNet
             this["GetDataStatement"] = adapterBinding.GetDataStatement;
             this["EndOperationStatement"] = adapterBinding.EndOperationStatement;
             this["UseAmbientTransaction"] = adapterBinding.UseAmbientTransaction;
+            this["IsolationLevel"] = adapterBinding.IsolationLevel;
             this["PollWhileDataFound"] = adapterBinding.PollWhileDataFound;
             this["PollingInterval"] = adapterBinding.PollingInterval;
         }
@@ -186,6 +203,7 @@ namespace Reply.Cluster.Mercury.Adapters.AdoNet
             adapterBinding.GetDataStatement = (System.String)this["GetDataStatement"];
             adapterBinding.EndOperationStatement = (System.String)this["EndOperationStatement"];
             adapterBinding.UseAmbientTransaction = (System.Boolean)this["UseAmbientTransaction"];
+            adapterBinding.IsolationLevel = (System.Transactions.IsolationLevel)this["IsolationLevel"];
             adapterBinding.PollWhileDataFound = (System.Boolean)this["PollWhileDataFound"];
             adapterBinding.PollingInterval = (System.Int32)this["PollingInterval"];
         }
@@ -204,6 +222,7 @@ namespace Reply.Cluster.Mercury.Adapters.AdoNet
                     configProperties.Add(new ConfigurationProperty("GetDataStatement", typeof(System.String), null, null, null, ConfigurationPropertyOptions.None));
                     configProperties.Add(new ConfigurationProperty("EndOperationStatement", typeof(System.String), null, null, null, ConfigurationPropertyOptions.None));
                     configProperties.Add(new ConfigurationProperty("UseAmbientTransaction", typeof(System.Boolean), true, null, null, ConfigurationPropertyOptions.None));
+                    configProperties.Add(new ConfigurationProperty("IsolationLevel", typeof(System.Transactions.IsolationLevel), System.Transactions.IsolationLevel.ReadCommitted, null, null, ConfigurationPropertyOptions.None));
                     configProperties.Add(new ConfigurationProperty("PollWhileDataFound", typeof(System.Boolean), false, null, null, ConfigurationPropertyOptions.None));
                     configProperties.Add(new ConfigurationProperty("PollingInterval", typeof(System.Int32), (System.Int32)30, null, null, ConfigurationPropertyOptions.None));
                     this.properties = configProperties;

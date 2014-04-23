@@ -37,6 +37,9 @@ namespace Reply.Cluster.Mercury.Adapters.AdoNet
         private bool useAmbientTransaction;
 
 
+        private System.Transactions.IsolationLevel isolationLevel;
+
+
         private bool pollWhileDataFound;
 
 
@@ -65,8 +68,11 @@ namespace Reply.Cluster.Mercury.Adapters.AdoNet
             this.GetDataStatement = binding.GetDataStatement;
             this.EndOperationStatement = binding.EndOperationStatement;
             this.UseAmbientTransaction = binding.UseAmbientTransaction;
+            this.isolationLevel = binding.isolationLevel;
             this.PollWhileDataFound = binding.PollWhileDataFound;
             this.PollingInterval = binding.PollingInterval;
+
+            this.Settings.Messaging.SupportsTransactedInbound = false;
         }
 
         #endregion Constructor
@@ -128,6 +134,21 @@ namespace Reply.Cluster.Mercury.Adapters.AdoNet
             set
             {
                 this.useAmbientTransaction = value;
+            }
+        }
+
+
+
+        [System.Configuration.ConfigurationProperty("isolationLevel", DefaultValue = System.Transactions.IsolationLevel.ReadCommitted)]
+        public System.Transactions.IsolationLevel IsolationLevel
+        {
+            get
+            {
+                return this.isolationLevel;
+            }
+            set
+            {
+                this.isolationLevel = value;
             }
         }
 

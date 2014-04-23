@@ -77,6 +77,9 @@ namespace Reply.Cluster.Mercury.Adapters.AdoNet
         private bool useAmbientTransaction;
 
 
+        private System.Transactions.IsolationLevel isolationLevel;
+
+
         private bool pollWhileDataFound;
 
 
@@ -205,6 +208,21 @@ namespace Reply.Cluster.Mercury.Adapters.AdoNet
 
 
 
+        [System.Configuration.ConfigurationProperty("isolationLevel", DefaultValue = System.Transactions.IsolationLevel.ReadCommitted)]
+        public System.Transactions.IsolationLevel IsolationLevel
+        {
+            get
+            {
+                return this.isolationLevel;
+            }
+            set
+            {
+                this.isolationLevel = value;
+            }
+        }
+
+
+
         [System.Configuration.ConfigurationProperty("pollWhileDataFound", DefaultValue = false)]
         public bool PollWhileDataFound
         {
@@ -247,6 +265,7 @@ namespace Reply.Cluster.Mercury.Adapters.AdoNet
                 binding.GetDataStatement = this.GetDataStatement;
                 binding.EndOperationStatement = this.EndOperationStatement;
                 binding.UseAmbientTransaction = this.UseAmbientTransaction;
+                binding.IsolationLevel = this.IsolationLevel;
                 binding.PollWhileDataFound = this.PollWhileDataFound;
                 binding.PollingInterval = this.PollingInterval;
                 return binding;

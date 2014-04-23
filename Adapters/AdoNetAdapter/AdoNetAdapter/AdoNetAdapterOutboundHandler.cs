@@ -11,6 +11,7 @@ using System.ServiceModel.Channels;
 using System.Linq;
 
 using Microsoft.ServiceModel.Channels.Common;
+using System.Transactions;
 #endregion
 
 namespace Reply.Cluster.Mercury.Adapters.AdoNet
@@ -52,133 +53,140 @@ namespace Reply.Cluster.Mercury.Adapters.AdoNet
             {
                 using (var connection = Connection.CreateDbConnection())
                 {
-                    if (operationType == "Procedure")
+                    connection.Open();
+
+                    var scopeOptions = this.Connection.ConnectionFactory.Adapter.UseAmbientTransaction ? TransactionScopeOption.Required : TransactionScopeOption.RequiresNew;
+
+                    using (var scope = new TransactionScope(scopeOptions, new TransactionOptions { IsolationLevel = Connection.ConnectionFactory.Adapter.IsolationLevel }))
                     {
-                        var command = connection.CreateCommand();
-
-                        command.CommandType = System.Data.CommandType.StoredProcedure;
-                        command.CommandText = operationTarget;
-
-                        bodyReader.MoveToContent();
-
-                        var parameters = DbHelpers.CreateParameters(bodyReader.ReadSubtree(), command, string.Empty);
-
-                        command.Parameters.AddRange(parameters.Values.ToArray());
-
-                        // TODO: parametri in uscita
-
-                        using (var reader = command.ExecuteReader())
-                        {
-                            return DbHelpers.CreateMessage(reader, operation.InputMessageAction);
-                        }
-                    }
-                    else if (operationType == "Create")
-                    {
-                        int count = 0;
-
-                        while (bodyReader.ReadToFollowing("Row"))
+                        if (operationType == "Procedure")
                         {
                             var command = connection.CreateCommand();
 
-                            var rowReader = bodyReader.ReadSubtree();
-                            var parameters = DbHelpers.CreateParameters(rowReader.ReadSubtree(), command, string.Empty);
+                            command.CommandType = System.Data.CommandType.StoredProcedure;
+                            command.CommandText = operationTarget;
 
-                            var queryBuilder = new StringBuilder();
-                            queryBuilder.AppendFormat("INSERT INTO {0} ( ", operationTarget);
-                            
-                            foreach (string column in parameters.Keys)
-                                queryBuilder.AppendFormat("{0}, ", column);
-
-                            queryBuilder.Remove(queryBuilder.Length - 2, 2);
-                            queryBuilder.Append(" ) VALUES ( ");
-
-                            foreach (string column in parameters.Keys)
-                                queryBuilder.AppendFormat("{0}, ", parameters[column].ParameterName);
-
-                            queryBuilder.Remove(queryBuilder.Length - 2, 2);
-                            queryBuilder.Append(" )");
-
-                            command.CommandText = queryBuilder.ToString();
-                            count = command.ExecuteNonQuery();
-                        }
-
-                        return DbHelpers.CreateMessage(operationType, count, action);
-                    }
-                    else if (operationType == "Read")
-                    {
-                        bodyReader.ReadToFollowing("Query");
-                        string query = bodyReader.ReadString();
-
-                        var command = connection.CreateCommand();
-                        command.CommandText = query;
-
-                        using (var reader = command.ExecuteReader())
-                        {
-                            return DbHelpers.CreateMessage(reader, operation.InputMessageAction);
-                        }
-                    }
-                    else if (operationType == "Update")
-                    {
-                        int count = 0;
-
-                        while (bodyReader.ReadToFollowing("Pair"))
-                        {
-                            var command = connection.CreateCommand();
-
-                            bodyReader.ReadToFollowing("Before");
-                            var beforeReader = bodyReader.ReadSubtree();
-
-                            var beforeParameters = DbHelpers.CreateParameters(beforeReader.ReadSubtree(), command, "pre");
-
-                            bodyReader.ReadToFollowing("After");
-                            var afterReader = bodyReader.ReadSubtree();
-
-                            var afterParameters = DbHelpers.CreateParameters(afterReader.ReadSubtree(), command, "post");
-
-                            var queryBuilder = new StringBuilder();
-                            queryBuilder.AppendFormat("UPDATE TABLE {0} ", operationTarget);
-
-                            foreach (string column in afterParameters.Keys)
-                                queryBuilder.AppendFormat("SET {0} = {1}, ", column, afterParameters[column]);
-
-                            queryBuilder.Remove(queryBuilder.Length - 2, 2);
-                            queryBuilder.Append(" WHERE ");
-
-                            foreach (string column in beforeParameters.Keys)
-                                queryBuilder.AppendFormat("{0} = {1} AND ", column, beforeParameters[column]);
-
-                            command.CommandText = queryBuilder.ToString();
-                            command.Parameters.AddRange(beforeParameters.Values.ToArray());
-                            command.Parameters.AddRange(afterParameters.Values.ToArray());
-
-                            count += command.ExecuteNonQuery();
-                        }
-
-                        return DbHelpers.CreateMessage(operationType, count, action);
-                    }
-                    else if (operationType == "Delete")
-                    {
-                        int count = 0;
-
-                        while (bodyReader.ReadToFollowing("Row"))
-                        {
-                            var command = connection.CreateCommand();
+                            bodyReader.MoveToContent();
 
                             var parameters = DbHelpers.CreateParameters(bodyReader.ReadSubtree(), command, string.Empty);
 
-                            var queryBuilder = new StringBuilder();
-                            queryBuilder.AppendFormat("DELETE FROM {0} WHERE ", operationTarget);
-
-                            foreach (string column in parameters.Keys)
-                                queryBuilder.AppendFormat("{0} = {1} AND ", column, parameters[column]);
-
-                            command.CommandText = queryBuilder.ToString();
                             command.Parameters.AddRange(parameters.Values.ToArray());
 
-                            count += command.ExecuteNonQuery();
-                        }
+                            // TODO: parametri in uscita
 
-                        return DbHelpers.CreateMessage(operationType, count, action);
+                            using (var reader = command.ExecuteReader())
+                            {
+                                return DbHelpers.CreateMessage(reader, operation.InputMessageAction);
+                            }
+                        }
+                        else if (operationType == "Create")
+                        {
+                            int count = 0;
+
+                            while (bodyReader.ReadToFollowing("Row"))
+                            {
+                                var command = connection.CreateCommand();
+
+                                var rowReader = bodyReader.ReadSubtree();
+                                var parameters = DbHelpers.CreateParameters(rowReader.ReadSubtree(), command, string.Empty);
+
+                                var queryBuilder = new StringBuilder();
+                                queryBuilder.AppendFormat("INSERT INTO {0} ( ", operationTarget);
+
+                                foreach (string column in parameters.Keys)
+                                    queryBuilder.AppendFormat("{0}, ", column);
+
+                                queryBuilder.Remove(queryBuilder.Length - 2, 2);
+                                queryBuilder.Append(" ) VALUES ( ");
+
+                                foreach (string column in parameters.Keys)
+                                    queryBuilder.AppendFormat("{0}, ", parameters[column].ParameterName);
+
+                                queryBuilder.Remove(queryBuilder.Length - 2, 2);
+                                queryBuilder.Append(" )");
+
+                                command.CommandText = queryBuilder.ToString();
+                                count = command.ExecuteNonQuery();
+                            }
+
+                            return DbHelpers.CreateMessage(operationType, count, action);
+                        }
+                        else if (operationType == "Read")
+                        {
+                            bodyReader.ReadToFollowing("Query");
+                            string query = bodyReader.ReadString();
+
+                            var command = connection.CreateCommand();
+                            command.CommandText = query;
+
+                            using (var reader = command.ExecuteReader())
+                            {
+                                return DbHelpers.CreateMessage(reader, operation.InputMessageAction);
+                            }
+                        }
+                        else if (operationType == "Update")
+                        {
+                            int count = 0;
+
+                            while (bodyReader.ReadToFollowing("Pair"))
+                            {
+                                var command = connection.CreateCommand();
+
+                                bodyReader.ReadToFollowing("Before");
+                                var beforeReader = bodyReader.ReadSubtree();
+
+                                var beforeParameters = DbHelpers.CreateParameters(beforeReader.ReadSubtree(), command, "pre");
+
+                                bodyReader.ReadToFollowing("After");
+                                var afterReader = bodyReader.ReadSubtree();
+
+                                var afterParameters = DbHelpers.CreateParameters(afterReader.ReadSubtree(), command, "post");
+
+                                var queryBuilder = new StringBuilder();
+                                queryBuilder.AppendFormat("UPDATE TABLE {0} ", operationTarget);
+
+                                foreach (string column in afterParameters.Keys)
+                                    queryBuilder.AppendFormat("SET {0} = {1}, ", column, afterParameters[column]);
+
+                                queryBuilder.Remove(queryBuilder.Length - 2, 2);
+                                queryBuilder.Append(" WHERE ");
+
+                                foreach (string column in beforeParameters.Keys)
+                                    queryBuilder.AppendFormat("{0} = {1} AND ", column, beforeParameters[column]);
+
+                                command.CommandText = queryBuilder.ToString();
+                                command.Parameters.AddRange(beforeParameters.Values.ToArray());
+                                command.Parameters.AddRange(afterParameters.Values.ToArray());
+
+                                count += command.ExecuteNonQuery();
+                            }
+
+                            return DbHelpers.CreateMessage(operationType, count, action);
+                        }
+                        else if (operationType == "Delete")
+                        {
+                            int count = 0;
+
+                            while (bodyReader.ReadToFollowing("Row"))
+                            {
+                                var command = connection.CreateCommand();
+
+                                var parameters = DbHelpers.CreateParameters(bodyReader.ReadSubtree(), command, string.Empty);
+
+                                var queryBuilder = new StringBuilder();
+                                queryBuilder.AppendFormat("DELETE FROM {0} WHERE ", operationTarget);
+
+                                foreach (string column in parameters.Keys)
+                                    queryBuilder.AppendFormat("{0} = {1} AND ", column, parameters[column]);
+
+                                command.CommandText = queryBuilder.ToString();
+                                command.Parameters.AddRange(parameters.Values.ToArray());
+
+                                count += command.ExecuteNonQuery();
+                            }
+
+                            return DbHelpers.CreateMessage(operationType, count, action);
+                        }
                     }
                 }
             }

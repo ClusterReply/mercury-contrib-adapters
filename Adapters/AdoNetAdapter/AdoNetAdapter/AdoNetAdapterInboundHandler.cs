@@ -13,6 +13,8 @@ using System.ServiceModel.Channels;
 using System.Collections.Concurrent;
 using System.Threading;
 using System.Xml;
+using System.Data.Common;
+using System.Transactions;
 #endregion
 
 namespace Reply.Cluster.Mercury.Adapters.AdoNet
@@ -42,7 +44,7 @@ namespace Reply.Cluster.Mercury.Adapters.AdoNet
         private string action;
 
         private System.Timers.Timer pollingTimer;
-        private BlockingCollection<Message> queue = new BlockingCollection<Message>();
+        private BlockingCollection<MessageItem> queue = new BlockingCollection<MessageItem>();
         private CancellationTokenSource cancelSource = new CancellationTokenSource();
 
         #endregion Private Fields
@@ -72,13 +74,19 @@ namespace Reply.Cluster.Mercury.Adapters.AdoNet
         /// </summary>
         public bool TryReceive(TimeSpan timeout, out System.ServiceModel.Channels.Message message, out IInboundReply reply)
         {
-            reply = new AdoNetAdapterInboundReply();
+            reply = null;
             message = null;
 
             if (queue.IsCompleted)
                 return false;
+            
+            MessageItem item = null;
+            bool result = queue.TryTake(out item, (int)timeout.TotalMilliseconds, cancelSource.Token);
 
-            return queue.TryTake(out message, (int)timeout.TotalMilliseconds, cancelSource.Token);
+            message = item.Message;
+            reply = new AdoNetAdapterInboundReply(item.Connection, item.Transaction, item.EndOperationStatement);
+
+            return result;
         }
 
         /// <summary>
@@ -106,11 +114,11 @@ namespace Reply.Cluster.Mercury.Adapters.AdoNet
             string getDataStatement = Connection.ConnectionFactory.Adapter.GetDataStatement;
             string endOperationStatement = Connection.ConnectionFactory.Adapter.EndOperationStatement;
 
-            using (var connection = Connection.CreateDbConnection())
-            {
-                bool dataAvailable = true;
+            bool dataAvailable = true;
 
-                if (!string.IsNullOrWhiteSpace(dataAvailableStatement))
+            if (!string.IsNullOrWhiteSpace(dataAvailableStatement))
+            {
+                using (var connection = Connection.CreateDbConnection())
                 {
                     var dataAvailableCommand = connection.CreateCommand();
                     dataAvailableCommand.CommandText = dataAvailableStatement;
@@ -118,37 +126,47 @@ namespace Reply.Cluster.Mercury.Adapters.AdoNet
                     int? count = dataAvailableCommand.ExecuteScalar() as int?;
                     dataAvailable = count.HasValue && (count > 0);
                 }
-                
-                if (dataAvailable)
+            }
+
+            if (dataAvailable)
+            {
+                bool goOn = Connection.ConnectionFactory.Adapter.PollWhileDataFound;
+
+                do
                 {
-                    bool goOn = Connection.ConnectionFactory.Adapter.PollWhileDataFound;
+                    if (queue.IsAddingCompleted)
+                        return;
 
-                    do
+                    var connection = Connection.CreateDbConnection();
+                    connection.Open();
+
+                    var transaction = new CommittableTransaction(new TransactionOptions { IsolationLevel = Connection.ConnectionFactory.Adapter.IsolationLevel });
+                    connection.EnlistTransaction(transaction);
+                    
+                    var getDataCommand = connection.CreateCommand();
+                    getDataCommand.CommandText = getDataStatement;
+
+                    using (var reader = getDataCommand.ExecuteReader())
                     {
-                        if (queue.IsAddingCompleted)
-                            return;
-
-                        var getDataCommand = connection.CreateCommand();
-                        getDataCommand.CommandText = getDataStatement;
-
-                        var reader = getDataCommand.ExecuteReader();
-
                         if (reader.HasRows)
                         {
-                            queue.Add(DbHelpers.CreateMessage(reader, action));
-
-                            if (!string.IsNullOrWhiteSpace(endOperationStatement))
+                            queue.Add(new MessageItem
                             {
-                                var endOperationCommand = connection.CreateCommand();
-                                endOperationCommand.CommandText = endOperationStatement;
-
-                                endOperationCommand.ExecuteNonQuery();
-                            }
+                                Message = DbHelpers.CreateMessage(reader, Connection.ConnectionFactory.Adapter.UseAmbientTransaction ? transaction : null, action),
+                                Connection = connection,
+                                Transaction = transaction,
+                                EndOperationStatement = endOperationStatement
+                            });
                         }
                         else
+                        {
+                            transaction.Commit();
+                            connection.Close();
+
                             goOn = false;
-                    } while (goOn);
-                }
+                        }
+                    }
+                } while (goOn);
             }
         }
 
@@ -168,23 +186,60 @@ namespace Reply.Cluster.Mercury.Adapters.AdoNet
     }
     internal class AdoNetAdapterInboundReply : InboundReply
     {
+        private DbConnection connection;
+        private CommittableTransaction transaction;
+        private string endOperationStatement;
+
+        public AdoNetAdapterInboundReply(DbConnection connection, CommittableTransaction transaction, string endOperationStatement)
+        {
+            this.connection = connection;
+            this.transaction = transaction;
+            this.endOperationStatement = endOperationStatement;
+        }
+
         #region InboundReply Members
 
         /// <summary>
         /// Abort the inbound reply call
         /// </summary>
         public override void Abort()
-        { }
+        {
+            try
+            {
+                transaction.Rollback();
+                connection.Close();
+            }
+            catch { }
+        }
 
         /// <summary>
         /// Reply message implemented
         /// </summary>
         public override void Reply(System.ServiceModel.Channels.Message message
             , TimeSpan timeout)
-        { }
+        {
+            if (!string.IsNullOrWhiteSpace(endOperationStatement))
+            {
+                var endOperationCommand = connection.CreateCommand();
+                endOperationCommand.CommandText = endOperationStatement;
+
+                endOperationCommand.ExecuteNonQuery();
+            }
+
+            transaction.Commit();
+            connection.Close();
+        }
 
 
         #endregion InboundReply Members
     }
 
+    internal class MessageItem
+    {
+        public Message Message { get; set; }
+
+        public DbConnection Connection { get; set; }
+        public CommittableTransaction Transaction { get; set; }
+        public string EndOperationStatement { get; set; }
+    }
 }
