@@ -24,43 +24,49 @@ namespace Reply.Cluster.Mercury.Adapters.AdoNet
         {
             string ns = AdoNetAdapter.SERVICENAMESPACE + "/Messages";
 
-            using (var stream = new System.IO.MemoryStream())
+            var stream = new System.IO.MemoryStream();
+
+            using (var writer = XmlWriter.Create(stream, new XmlWriterSettings { NamespaceHandling = NamespaceHandling.OmitDuplicates }))
             {
-                using (var writer = XmlWriter.Create(stream))
+                writer.WriteStartElement("InboundData", ns);
+
+                writer.WriteAttributeString("xmlns", "xs", null, "http://www.w3.org/2001/XMLSchema");
+                writer.WriteAttributeString("xmlns", "i", null, "http://www.w3.org/2001/XMLSchema-instance");
+                
+                do
                 {
-                    writer.WriteStartElement("InboundData", ns);
+                    writer.WriteStartElement("ResultSet", ns);
 
-                    do
+                    while (reader.Read())
                     {
-                        writer.WriteStartElement("ResultSet", ns);
+                        writer.WriteStartElement("Row", ns);
 
-                        while (reader.Read())
+                        for (int i = 0; i < reader.FieldCount; i++)
                         {
-                            writer.WriteStartElement("Row", ns);
-
-                            for (int i = 0; i < reader.FieldCount; i++)
+                            if (!reader.IsDBNull(i))
+                            {
+                                writer.WriteStartElement(reader.GetName(i), ns);
                                 objectSerializer.WriteObjectContent(writer, reader[i]);
-                        
-                            writer.WriteEndElement();
+                                writer.WriteEndElement();
+                            }
                         }
 
                         writer.WriteEndElement();
-                    } while (reader.NextResult());
-
-                    writer.WriteEndDocument();
-                    writer.Flush();
-                    stream.Seek(0, System.IO.SeekOrigin.Begin);
-
-                    using (var xmlReader = XmlReader.Create(stream))
-                    {
-                        var message = Message.CreateMessage(MessageVersion.Default, action, xmlReader);
-
-                        if (transaction != null)
-                            TransactionMessageProperty.Set(transaction, message);
-
-                        return message;
                     }
-                }
+
+                    writer.WriteEndElement();
+                } while (reader.NextResult());
+
+                writer.WriteEndDocument();
+                writer.Flush();
+                stream.Seek(0, System.IO.SeekOrigin.Begin);
+
+                var message = Message.CreateMessage(MessageVersion.Default, action, XmlReader.Create(stream));
+
+                if (transaction != null)
+                    TransactionMessageProperty.Set(transaction, message);
+
+                return message;
             }
         }
       
