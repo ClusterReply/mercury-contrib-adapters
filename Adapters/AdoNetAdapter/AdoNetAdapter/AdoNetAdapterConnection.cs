@@ -164,6 +164,18 @@ namespace Reply.Cluster.Mercury.Adapters.AdoNet
             return connection;
         }
 
+        internal DbCommandBuilder CreateDbCommandBuilder(string table, DbConnection connection)
+        {
+            var commandBuilder = providerFactory.CreateCommandBuilder();
+            commandBuilder.DataAdapter = providerFactory.CreateDataAdapter();
+
+            var selectCommand = connection.CreateCommand();
+            selectCommand.CommandText = string.Format("SELECT * FROM {0} WHERE 0=1", commandBuilder.QuoteIdentifier(table));
+            commandBuilder.DataAdapter.SelectCommand = selectCommand;
+
+            return commandBuilder;
+        }
+
         #endregion Internal Members
     }
 }

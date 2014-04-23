@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Data.Common;
 using System.Linq;
 using System.Runtime.Serialization;
@@ -11,7 +12,7 @@ using System.Xml;
 
 namespace Reply.Cluster.Mercury.Adapters.AdoNet
 {
-    static class DbHelpers
+    public static class DbHelpers
     {
         private static DataContractSerializer objectSerializer = new DataContractSerializer(typeof(object));
 
@@ -30,8 +31,8 @@ namespace Reply.Cluster.Mercury.Adapters.AdoNet
             {
                 writer.WriteStartElement("InboundData", ns);
 
-                writer.WriteAttributeString("xmlns", "xs", null, "http://www.w3.org/2001/XMLSchema");
-                writer.WriteAttributeString("xmlns", "i", null, "http://www.w3.org/2001/XMLSchema-instance");
+                //writer.WriteAttributeString("xmlns", "xs", null, "http://www.w3.org/2001/XMLSchema");
+                //writer.WriteAttributeString("xmlns", "i", null, "http://www.w3.org/2001/XMLSchema-instance");
                 
                 do
                 {
@@ -108,6 +109,80 @@ namespace Reply.Cluster.Mercury.Adapters.AdoNet
             }
 
             return parameters;
+        }
+
+        public static void SetSourceParameters(XmlReader reader, DbParameterCollection parameters)
+        {
+            var sourceParametes = GetSourceParameters(parameters);
+            var nullParametes = GetNullMappingParameters(parameters);
+
+            reader.MoveToContent();
+            reader.Read();
+
+            do
+            {
+                string name = reader.LocalName;
+
+                if (!sourceParametes.ContainsKey(name))
+                    throw new IndexOutOfRangeException(string.Format("Column '{0}' not found", name));
+
+                var parameter = sourceParametes[name];
+                object value = objectSerializer.ReadObject(reader, false);
+
+                if (value != null)
+                {
+                    if (nullParametes.ContainsKey(name))
+                        nullParametes[name].Value = false;
+
+                    parameter.Value = value;
+                }
+                else
+                {
+                    parameter.Value = DBNull.Value;
+                }
+            } while (reader.NodeType == XmlNodeType.Element);
+        }
+
+        public static void SetTargetParameters(XmlReader reader, DbParameterCollection parameters)
+        {
+            var targetParametes = GetTargetParameters(parameters);
+
+            reader.MoveToContent();
+            reader.Read();
+
+            do
+            {
+                string name = reader.LocalName;
+                
+                if (!targetParametes.ContainsKey(name))
+                    throw new IndexOutOfRangeException(string.Format("Column '{0}' not found", name));
+
+                var parameter = targetParametes[name];
+                object value = objectSerializer.ReadObject(reader, false);
+                                
+                if (value != null)
+                    parameter.Value = value;
+                else
+                    parameter.Value = DBNull.Value;
+            } while (reader.NodeType == XmlNodeType.Element);
+        }
+
+        private static Dictionary<string, DbParameter> GetSourceParameters(DbParameterCollection parameters)
+        {
+            return parameters.Cast<DbParameter>()
+                .Where(p => p.SourceVersion == DataRowVersion.Original && !p.SourceColumnNullMapping).ToDictionary(p => p.SourceColumn);
+        }
+
+        private static Dictionary<string, DbParameter> GetTargetParameters(DbParameterCollection parameters)
+        {
+            return parameters.Cast<DbParameter>()
+                .Where(p => p.SourceVersion == DataRowVersion.Current && !p.SourceColumnNullMapping).ToDictionary(p => p.SourceColumn);
+        }
+
+        private static Dictionary<string, DbParameter> GetNullMappingParameters(DbParameterCollection parameters)
+        {
+            return parameters.Cast<DbParameter>()
+                .Where(p => p.SourceColumnNullMapping).ToDictionary(p => p.SourceColumn);
         }
     }
 }
