@@ -41,6 +41,28 @@ namespace Reply.Cluster.Mercury.Adapters.AdoNet
                         writer.WriteEndElement();
                     } while (reader.NextResult());
 
+                    writer.WriteEndDocument();
+                    writer.Flush();
+                    stream.Seek(0, System.IO.SeekOrigin.Begin);
+
+                    using (var xmlReader = XmlReader.Create(stream))
+                        return Message.CreateMessage(MessageVersion.Default, action, xmlReader);
+                }
+            }
+        }
+      
+        public static Message CreateMessage(string operationType, int count, string action)
+        {
+            string ns = AdoNetAdapter.SERVICENAMESPACE + "/Messages";
+
+            using (var stream = new System.IO.MemoryStream())
+            {
+                using (var writer = XmlWriter.Create(stream))
+                {
+                    writer.WriteStartElement(operationType + "Result", ns);
+                    writer.WriteAttributeString("count", count.ToString());
+                    writer.WriteEndDocument();
+
                     writer.Flush();
                     stream.Seek(0, System.IO.SeekOrigin.Begin);
 
@@ -50,9 +72,9 @@ namespace Reply.Cluster.Mercury.Adapters.AdoNet
             }
         }
 
-        public static DbParameter[] CreateParameters(XmlReader reader, DbCommand command)
+        public static Dictionary<string, DbParameter> CreateParameters(XmlReader reader, DbCommand command, string parameterPrefix)
         {
-            var parameters = new List<DbParameter>();
+            var parameters = new Dictionary<string, DbParameter>();
 
             while (reader.Read())
             {
@@ -60,13 +82,13 @@ namespace Reply.Cluster.Mercury.Adapters.AdoNet
                 object value = objectSerializer.ReadObject(reader, false);
 
                 var parameter = command.CreateParameter();
-                parameter.ParameterName = name;
+                parameter.ParameterName = parameterPrefix + name;
                 parameter.Value = value;
 
-                parameters.Add(parameter);
+                parameters[name] = parameter;
             }
 
-            return parameters.ToArray();
+            return parameters;
         }
     }
 }
