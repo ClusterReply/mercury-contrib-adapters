@@ -33,10 +33,9 @@ namespace Reply.Cluster.Mercury.Adapters.AdoNet
 
             UriBuilder actionBuilder = new UriBuilder(AdoNetAdapter.SERVICENAMESPACE);
             actionBuilder.Path = System.IO.Path.Combine(actionBuilder.Path, connection.ConnectionFactory.ConnectionUri.ConnectionName);
-            actionBuilder.Path = System.IO.Path.Combine(actionBuilder.Path, "Receive");
             actionBuilder.Path = System.IO.Path.Combine(actionBuilder.Path, connection.ConnectionFactory.ConnectionUri.InboundID);
 
-            action = actionBuilder.ToString();
+            action = actionBuilder.ToString() + "#Receive";
         }
 
         #region Private Fields

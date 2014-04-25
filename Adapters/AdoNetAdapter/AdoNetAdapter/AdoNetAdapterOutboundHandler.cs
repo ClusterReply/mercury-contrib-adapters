@@ -19,8 +19,30 @@ namespace Reply.Cluster.Mercury.Adapters.AdoNet
 {
     public class AdoNetAdapterOutboundHandler : AdoNetAdapterHandlerBase, IOutboundHandler
     {
-        private static System.Text.RegularExpressions.Regex operationExp = 
-            new System.Text.RegularExpressions.Regex(@"^(?<Type>Procedure|Create|Read|Update|Delete)/(?<Target>.+)$");
+        private static System.Text.RegularExpressions.Regex operationExp =
+            new System.Text.RegularExpressions.Regex(@"^(?<Target>.+)#(?<Type>Execute|Create|Read|Update|Delete)$");
+
+        private static Tuple<string, string> ParseAction(string soapAction)
+        {
+            if (!soapAction.StartsWith(AdoNetAdapter.SERVICENAMESPACE))
+                throw new InvalidOperationException();
+
+            Uri actionUri = new Uri(soapAction);
+            Uri operationUri = actionUri.MakeRelativeUri(new Uri(AdoNetAdapter.SERVICENAMESPACE));
+
+            var segments = actionUri.Segments;
+            string actionId = segments[segments.Length - 1];
+
+            var match = operationExp.Match(actionId);
+
+            if (!match.Success)
+                throw new InvalidOperationException();
+
+            string operationType = match.Groups["Type"].Value;
+            string operationTarget = match.Groups["Target"].Value;
+
+            return new Tuple<string, string>(operationType, operationTarget);
+        }
 
         /// <summary>
         /// Initializes a new instance of the AdoNetAdapterOutboundHandler class
@@ -40,15 +62,12 @@ namespace Reply.Cluster.Mercury.Adapters.AdoNet
         public Message Execute(Message message, TimeSpan timeout)
         {
             string action = message.Headers.Action;
-            var operation = this.MetadataLookup.GetOperationDefinitionFromInputMessageAction(action, timeout);
+            string responseAction = action + "Response";
 
-            var match = operationExp.Match(operation.UniqueId);
+            var operation = ParseAction(action);
 
-            if (!match.Success)
-                throw new InvalidOperationException();
-
-            string operationType = match.Groups["Type"].Value;
-            string operationTarget = match.Groups["Target"].Value;
+            string operationType = operation.Item1;
+            string operationTarget = operation.Item2;
 
             using (var bodyReader = message.GetReaderAtBodyContents())
             {
@@ -60,7 +79,7 @@ namespace Reply.Cluster.Mercury.Adapters.AdoNet
 
                     using (var scope = new TransactionScope(scopeOptions, new TransactionOptions { IsolationLevel = Connection.ConnectionFactory.Adapter.IsolationLevel }))
                     {
-                        if (operationType == "Procedure")
+                        if (operationType == "Execute")
                         {
                             var commandBuilder = Connection.CreateDbCommandBuilder(string.Empty, connection);
                             var command = connection.CreateCommand();
@@ -77,7 +96,7 @@ namespace Reply.Cluster.Mercury.Adapters.AdoNet
 
                             using (var reader = command.ExecuteReader())
                             {
-                                return DbHelpers.CreateMessage(reader, operation.InputMessageAction);
+                                return DbHelpers.CreateMessage(reader, responseAction);
                             }
                         }
                         else if (operationType == "Create")
@@ -105,7 +124,7 @@ namespace Reply.Cluster.Mercury.Adapters.AdoNet
 
                             using (var reader = command.ExecuteReader())
                             {
-                                return DbHelpers.CreateMessage(reader, operation.InputMessageAction);
+                                return DbHelpers.CreateMessage(reader, responseAction);
                             }
                         }
                         else if (operationType == "Update")
@@ -122,7 +141,7 @@ namespace Reply.Cluster.Mercury.Adapters.AdoNet
                                 count += command.ExecuteNonQuery();
                             }
 
-                            return DbHelpers.CreateMessage(operationType, count, action);
+                            return DbHelpers.CreateMessage(operationType, count, responseAction);
                         }
                         else if (operationType == "Delete")
                         {
@@ -137,7 +156,7 @@ namespace Reply.Cluster.Mercury.Adapters.AdoNet
                                 count += command.ExecuteNonQuery();
                             }
 
-                            return DbHelpers.CreateMessage(operationType, count, action);
+                            return DbHelpers.CreateMessage(operationType, count, responseAction);
                         }
                     }
                 }
