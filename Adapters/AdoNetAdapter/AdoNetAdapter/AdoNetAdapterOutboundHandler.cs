@@ -12,6 +12,7 @@ using System.Linq;
 
 using Microsoft.ServiceModel.Channels.Common;
 using System.Transactions;
+using Reply.Cluster.Mercury.Adapters.Helpers;
 #endregion
 
 namespace Reply.Cluster.Mercury.Adapters.AdoNet
@@ -61,16 +62,16 @@ namespace Reply.Cluster.Mercury.Adapters.AdoNet
                     {
                         if (operationType == "Procedure")
                         {
+                            var commandBuilder = Connection.CreateDbCommandBuilder(string.Empty, connection);
                             var command = connection.CreateCommand();
 
                             command.CommandType = System.Data.CommandType.StoredProcedure;
                             command.CommandText = operationTarget;
 
-                            bodyReader.MoveToContent();
+                            dynamic staticCommandBuilder = new StaticMembersDynamicWrapper(commandBuilder.GetType());
+                            staticCommandBuilder.DeriveParameters(command);
 
-                            var parameters = DbHelpers.CreateParameters(bodyReader.ReadSubtree(), command, string.Empty);
-
-                            command.Parameters.AddRange(parameters.Values.ToArray());
+                            DbHelpers.SetParameters(bodyReader.ReadSubtree(), command.Parameters);
 
                             // TODO: parametri in uscita
 
@@ -114,7 +115,7 @@ namespace Reply.Cluster.Mercury.Adapters.AdoNet
 
                             while (bodyReader.ReadToFollowing("Pair"))
                             {
-                                var command = commandBuilder.GetInsertCommand();
+                                var command = commandBuilder.GetUpdateCommand();
                                 DbHelpers.SetSourceParameters(bodyReader.ReadSubtree(), command.Parameters);
                                 DbHelpers.SetTargetParameters(bodyReader.ReadSubtree(), command.Parameters);
 
@@ -130,7 +131,7 @@ namespace Reply.Cluster.Mercury.Adapters.AdoNet
 
                             while (bodyReader.ReadToFollowing("Row"))
                             {
-                                var command = commandBuilder.GetInsertCommand();
+                                var command = commandBuilder.GetDeleteCommand();
                                 DbHelpers.SetSourceParameters(bodyReader.ReadSubtree(), command.Parameters);
 
                                 count += command.ExecuteNonQuery();

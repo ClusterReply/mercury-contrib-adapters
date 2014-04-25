@@ -169,9 +169,12 @@ namespace Reply.Cluster.Mercury.Adapters.AdoNet
             var commandBuilder = providerFactory.CreateCommandBuilder();
             commandBuilder.DataAdapter = providerFactory.CreateDataAdapter();
 
-            var selectCommand = connection.CreateCommand();
-            selectCommand.CommandText = string.Format("SELECT * FROM {0} WHERE 0=1", commandBuilder.QuoteIdentifier(table));
-            commandBuilder.DataAdapter.SelectCommand = selectCommand;
+            if (!string.IsNullOrWhiteSpace(table))
+            {
+                var selectCommand = connection.CreateCommand();
+                selectCommand.CommandText = string.Format("SELECT * FROM {0} WHERE 0=1", commandBuilder.QuoteIdentifier(table));
+                commandBuilder.DataAdapter.SelectCommand = selectCommand;
+            }
 
             return commandBuilder;
         }
