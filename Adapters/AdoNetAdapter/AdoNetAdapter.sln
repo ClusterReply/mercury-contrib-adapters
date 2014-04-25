@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Helpers", "..\Helpers\Helpe
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Adapters", "Adapters", "{8629AE16-36AA-4613-88B3-D910BE84E982}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AdoNetAdapter.Messages", "AdoNetAdapter.Messages\AdoNetAdapter.Messages.csproj", "{D9D59877-B041-465A-9396-7D9AE769CB70}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -29,6 +31,10 @@ Global
 		{6B46A1EC-FD51-4F40-B325-7401DEB3F37B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6B46A1EC-FD51-4F40-B325-7401DEB3F37B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6B46A1EC-FD51-4F40-B325-7401DEB3F37B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D9D59877-B041-465A-9396-7D9AE769CB70}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D9D59877-B041-465A-9396-7D9AE769CB70}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D9D59877-B041-465A-9396-7D9AE769CB70}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D9D59877-B041-465A-9396-7D9AE769CB70}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

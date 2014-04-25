@@ -111,7 +111,7 @@ namespace Reply.Cluster.Mercury.Adapters.AdoNet
                 using (var writer = XmlWriter.Create(stream))
                 {
                     writer.WriteStartElement(operationType + "Result", ns);
-                    writer.WriteAttributeString("count", count.ToString());
+                    writer.WriteElementString("Count", ns, count.ToString());
                     writer.WriteEndDocument();
 
                     writer.Flush();

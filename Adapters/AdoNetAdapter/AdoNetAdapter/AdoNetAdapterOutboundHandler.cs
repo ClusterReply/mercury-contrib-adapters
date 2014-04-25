@@ -135,7 +135,11 @@ namespace Reply.Cluster.Mercury.Adapters.AdoNet
                             while (bodyReader.ReadToFollowing("Pair"))
                             {
                                 var command = commandBuilder.GetUpdateCommand();
+
+                                bodyReader.ReadToFollowing("Before");
                                 DbHelpers.SetSourceParameters(bodyReader.ReadSubtree(), command.Parameters);
+
+                                bodyReader.ReadToFollowing("After");
                                 DbHelpers.SetTargetParameters(bodyReader.ReadSubtree(), command.Parameters);
 
                                 count += command.ExecuteNonQuery();
