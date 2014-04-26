@@ -141,6 +141,22 @@ namespace Reply.Cluster.Mercury.Adapters.AdoNet
 
 
 
+        [System.Configuration.ConfigurationProperty("pollingType", DefaultValue = PollingType.Simple)]
+        [System.ComponentModel.Category("Schedule")]
+        public PollingType PollingType
+        {
+            get
+            {
+                return ((PollingType)(base["PollingType"]));
+            }
+            set
+            {
+                base["PollingType"] = value;
+            }
+        }
+
+
+
         [System.Configuration.ConfigurationProperty("pollingInterval", DefaultValue = 30)]
         [System.ComponentModel.Category("Schedule")]
         public int PollingInterval
@@ -152,6 +168,22 @@ namespace Reply.Cluster.Mercury.Adapters.AdoNet
             set
             {
                 base["PollingInterval"] = value;
+            }
+        }
+
+
+
+        [System.Configuration.ConfigurationProperty("scheduleName")]
+        [System.ComponentModel.Category("Schedule")]
+        public string ScheduleName
+        {
+            get
+            {
+                return ((string)(base["ScheduleName"]));
+            }
+            set
+            {
+                base["ScheduleName"] = value;
             }
         }
 
@@ -187,7 +219,9 @@ namespace Reply.Cluster.Mercury.Adapters.AdoNet
             this["UseAmbientTransaction"] = adapterBinding.UseAmbientTransaction;
             this["IsolationLevel"] = adapterBinding.IsolationLevel;
             this["PollWhileDataFound"] = adapterBinding.PollWhileDataFound;
+            this["PollingType"] = adapterBinding.PollingType;
             this["PollingInterval"] = adapterBinding.PollingInterval;
+            this["ScheduleName"] = adapterBinding.ScheduleName;
         }
 
         /// <summary>
@@ -205,7 +239,9 @@ namespace Reply.Cluster.Mercury.Adapters.AdoNet
             adapterBinding.UseAmbientTransaction = (System.Boolean)this["UseAmbientTransaction"];
             adapterBinding.IsolationLevel = (System.Transactions.IsolationLevel)this["IsolationLevel"];
             adapterBinding.PollWhileDataFound = (System.Boolean)this["PollWhileDataFound"];
+            adapterBinding.PollingType = (PollingType)this["PollingType"];
             adapterBinding.PollingInterval = (System.Int32)this["PollingInterval"];
+            adapterBinding.ScheduleName = (System.String)this["ScheduleName"];
         }
 
         /// <summary>
@@ -224,7 +260,9 @@ namespace Reply.Cluster.Mercury.Adapters.AdoNet
                     configProperties.Add(new ConfigurationProperty("UseAmbientTransaction", typeof(System.Boolean), true, null, null, ConfigurationPropertyOptions.None));
                     configProperties.Add(new ConfigurationProperty("IsolationLevel", typeof(System.Transactions.IsolationLevel), System.Transactions.IsolationLevel.ReadCommitted, null, null, ConfigurationPropertyOptions.None));
                     configProperties.Add(new ConfigurationProperty("PollWhileDataFound", typeof(System.Boolean), false, null, null, ConfigurationPropertyOptions.None));
+                    configProperties.Add(new ConfigurationProperty("PollingType", typeof(PollingType), PollingType.Simple, null, null, ConfigurationPropertyOptions.None));
                     configProperties.Add(new ConfigurationProperty("PollingInterval", typeof(System.Int32), (System.Int32)30, null, null, ConfigurationPropertyOptions.None));
+                    configProperties.Add(new ConfigurationProperty("ScheduleName", typeof(System.String), null, null, null, ConfigurationPropertyOptions.None));
                     this.properties = configProperties;
                 }
                 return this.properties;

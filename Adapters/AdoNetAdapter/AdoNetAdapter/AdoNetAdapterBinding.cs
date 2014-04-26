@@ -83,7 +83,13 @@ namespace Reply.Cluster.Mercury.Adapters.AdoNet
         private bool pollWhileDataFound;
 
 
+        private PollingType pollingType;
+
+
         private int pollingInterval;
+
+
+        private string scheduleName;
 
         #endregion Custom Generated Fields
 
@@ -238,6 +244,21 @@ namespace Reply.Cluster.Mercury.Adapters.AdoNet
 
 
 
+        [System.Configuration.ConfigurationProperty("pollingType", DefaultValue = PollingType.Simple)]
+        public PollingType PollingType
+        {
+            get
+            {
+                return this.pollingType;
+            }
+            set
+            {
+                this.pollingType = value;
+            }
+        }
+
+
+
         [System.Configuration.ConfigurationProperty("pollingInterval", DefaultValue = 30)]
         public int PollingInterval
         {
@@ -248,6 +269,21 @@ namespace Reply.Cluster.Mercury.Adapters.AdoNet
             set
             {
                 this.pollingInterval = value;
+            }
+        }
+
+
+
+        [System.Configuration.ConfigurationProperty("scheduleName")]
+        public string ScheduleName
+        {
+            get
+            {
+                return this.scheduleName;
+            }
+            set
+            {
+                this.scheduleName = value;
             }
         }
 

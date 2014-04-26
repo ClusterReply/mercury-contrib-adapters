@@ -15,6 +15,7 @@ using System.Threading;
 using System.Xml;
 using System.Data.Common;
 using System.Transactions;
+using Reply.Cluster.Mercury.Adapters.Helpers;
 #endregion
 
 namespace Reply.Cluster.Mercury.Adapters.AdoNet
@@ -28,8 +29,17 @@ namespace Reply.Cluster.Mercury.Adapters.AdoNet
             , MetadataLookup metadataLookup)
             : base(connection, metadataLookup)
         {
-            pollingTimer = new System.Timers.Timer((double)connection.ConnectionFactory.Adapter.PollingInterval * 1000);
-            pollingTimer.Elapsed += pollingTimer_Elapsed;
+            pollingType = connection.ConnectionFactory.Adapter.PollingType;
+
+            if (pollingType == PollingType.Simple)
+            {
+                pollingTimer = new System.Timers.Timer((double)connection.ConnectionFactory.Adapter.PollingInterval * 1000);
+                pollingTimer.Elapsed += pollingTimer_Elapsed;
+            }
+            else
+            {
+                schedule = new ScheduleHelper(connection.ConnectionFactory.Adapter.ScheduleName, () => ExecutePolling());
+            }
 
             UriBuilder actionBuilder = new UriBuilder(AdoNetAdapter.SERVICENAMESPACE);
             actionBuilder.Path = System.IO.Path.Combine(actionBuilder.Path, connection.ConnectionFactory.ConnectionUri.ConnectionName);
@@ -41,8 +51,11 @@ namespace Reply.Cluster.Mercury.Adapters.AdoNet
         #region Private Fields
 
         private string action;
+        private PollingType pollingType;
 
         private System.Timers.Timer pollingTimer;
+        private ScheduleHelper schedule;
+
         private BlockingCollection<MessageItem> queue = new BlockingCollection<MessageItem>();
         private CancellationTokenSource cancelSource = new CancellationTokenSource();
 
@@ -55,7 +68,10 @@ namespace Reply.Cluster.Mercury.Adapters.AdoNet
         /// </summary>
         public void StartListener(string[] actions, TimeSpan timeout)
         {
-            pollingTimer.Start();
+            if (pollingType == PollingType.Simple)
+                pollingTimer.Start();
+            else 
+                schedule.Start();
         }
 
         /// <summary>
@@ -63,7 +79,11 @@ namespace Reply.Cluster.Mercury.Adapters.AdoNet
         /// </summary>
         public void StopListener(TimeSpan timeout)
         {
-            pollingTimer.Stop();
+            if (pollingType == PollingType.Simple)
+                pollingTimer.Stop();
+            else
+                schedule.Stop();
+
             queue.CompleteAdding();
             cancelSource.Cancel();
         }
