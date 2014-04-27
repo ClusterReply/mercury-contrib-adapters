@@ -52,6 +52,7 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -59,10 +60,16 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Entities.cs" />
+    <Compile Include="Messages.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Uris.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\AdoNetAdapter.Messages\AdoNetAdapter.Messages.csproj">
+      <Project>{d9d59877-b041-465a-9396-7d9ae769cb70}</Project>
+      <Name>AdoNetAdapter.Messages</Name>
+    </ProjectReference>
     <ProjectReference Include="..\AdoNetAdapter\AdoNetAdapter.csproj">
       <Project>{f49a28d2-7b38-40dd-8d25-074edd763886}</Project>
       <Name>AdoNetAdapter</Name>
