@@ -7,6 +7,6 @@ using System.Threading.Tasks;
 
 namespace Reply.Cluster.Mercury.Adapters.AdoNet.Messages
 {
-    [CollectionDataContract(ItemName = "Row", Namespace = Constants.MESSAGENAMESPACE)]
+    [CollectionDataContract(ItemName = Constants.ROW, Namespace = Constants.MESSAGENAMESPACE)]
     public class RowCollection<T> : List<T> { }
 }

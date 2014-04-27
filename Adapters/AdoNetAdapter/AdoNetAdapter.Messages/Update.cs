@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Reply.Cluster.Mercury.Adapters.AdoNet.Messages
 {
-    [CollectionDataContract(Name = "Delete", ItemName = "Row", Namespace = Constants.MESSAGENAMESPACE)]
+    [CollectionDataContract(Name = Constants.UPDATE, ItemName = Constants.ROW, Namespace = Constants.MESSAGENAMESPACE)]
     public class Update<T> : List<Pair<T>> { }
 
     [DataContract(Name = "Pair", Namespace = Constants.MESSAGENAMESPACE)]
@@ -20,6 +20,6 @@ namespace Reply.Cluster.Mercury.Adapters.AdoNet.Messages
         public T After { get; set; }
     }
 
-    [DataContract(Name = "UpdateResult", Namespace = Constants.MESSAGENAMESPACE)]
+    [DataContract(Name = Constants.UPDATE_RESULT, Namespace = Constants.MESSAGENAMESPACE)]
     public class UpdateResult : Result { }
 }

@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Reply.Cluster.Mercury.Adapters.AdoNet.Messages
 {
-    [DataContract(Name = "Read", Namespace = Constants.MESSAGENAMESPACE)]
+    [DataContract(Name = Constants.READ, Namespace = Constants.MESSAGENAMESPACE)]
     public class Read
     {
         [DataMember(Name = "Query")]
