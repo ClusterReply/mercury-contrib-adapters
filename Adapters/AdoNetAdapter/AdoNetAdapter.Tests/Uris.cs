@@ -20,9 +20,9 @@ namespace Reply.Cluster.Mercury.Adapters.AdoNet.Tests
             uri.ConnectionString = "Server=myServerAddress;Database=myDataBase;Trusted_Connection=True;";
             uri.InboundID = "TestID";
 
-            Assert.AreEqual(new Uri(
-                "ado://TestConnection/TestID?adoNetProvider=System.Data.SqlClient&Server=myServerAddress&Database=myDataBase&Trusted_Connection=True"), 
-                uri.Uri);
+            Assert.AreEqual(
+                "ado://TestConnection/TestID?adoNetProvider=System.Data.SqlClient&Server=myServerAddress&Database=myDataBase&Trusted_Connection=True",
+                uri.Uri.ToString(), StringComparison.InvariantCultureIgnoreCase);
         }
 
         [Test]
@@ -33,7 +33,7 @@ namespace Reply.Cluster.Mercury.Adapters.AdoNet.Tests
 
             Assert.AreEqual("TestConnection", uri.ConnectionName, StringComparison.InvariantCultureIgnoreCase);
             Assert.AreEqual("System.Data.SqlClient", uri.ProviderName, StringComparison.InvariantCultureIgnoreCase);
-            Assert.AreEqual("Server=myServerAddress;Database=myDataBase;Trusted_Connection=True;", uri.ConnectionString, StringComparison.InvariantCultureIgnoreCase);
+            Assert.AreEqual("Server=myServerAddress;Database=myDataBase;Trusted_Connection=True", uri.ConnectionString, StringComparison.InvariantCultureIgnoreCase);
             Assert.AreEqual("TestID", uri.InboundID, StringComparison.InvariantCultureIgnoreCase);
         }
     }
