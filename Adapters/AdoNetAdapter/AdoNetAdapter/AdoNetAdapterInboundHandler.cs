@@ -38,7 +38,7 @@ namespace Reply.Cluster.Mercury.Adapters.AdoNet
             }
             else
             {
-                schedule = new ScheduleHelper(connection.ConnectionFactory.Adapter.ScheduleName, () => ExecutePolling());
+                scheduleName = connection.ConnectionFactory.Adapter.ScheduleName;
             }
 
             UriBuilder actionBuilder = new UriBuilder(AdoNetAdapter.SERVICENAMESPACE);
@@ -54,7 +54,7 @@ namespace Reply.Cluster.Mercury.Adapters.AdoNet
         private PollingType pollingType;
 
         private System.Timers.Timer pollingTimer;
-        private ScheduleHelper schedule;
+        private string scheduleName;
 
         private BlockingCollection<MessageItem> queue = new BlockingCollection<MessageItem>();
         private CancellationTokenSource cancelSource = new CancellationTokenSource();
@@ -70,8 +70,8 @@ namespace Reply.Cluster.Mercury.Adapters.AdoNet
         {
             if (pollingType == PollingType.Simple)
                 pollingTimer.Start();
-            else 
-                schedule.Start();
+            else
+                ScheduleHelper.RegisterEvent(scheduleName, () => ExecutePolling());
         }
 
         /// <summary>
@@ -82,7 +82,7 @@ namespace Reply.Cluster.Mercury.Adapters.AdoNet
             if (pollingType == PollingType.Simple)
                 pollingTimer.Stop();
             else
-                schedule.Stop();
+                ScheduleHelper.RegisterEvent(scheduleName, () => ExecutePolling());
 
             queue.CompleteAdding();
             cancelSource.Cancel();
