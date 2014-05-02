@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Reply.Cluster.Mercury.Adapters.Helpers;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
@@ -222,6 +223,90 @@ namespace Reply.Cluster.Mercury.Adapters.AdoNet
                 if (value != null)
                     parameter.Value = value;
             } while (reader.NodeType == XmlNodeType.Element);
+        }
+
+        public static Message Execute(XmlReader xmlReader, DbConnection connection, string procedureName, Type commandBuilderType, string action)
+        {
+            var command = connection.CreateCommand();
+
+            command.CommandType = System.Data.CommandType.StoredProcedure;
+            command.CommandText = procedureName;
+
+            dynamic staticCommandBuilder = new StaticMembersDynamicWrapper(commandBuilderType);
+            staticCommandBuilder.DeriveParameters(command);
+
+            DbHelpers.SetParameters(xmlReader.ReadSubtree(), command.Parameters);
+
+            // TODO: parametri in uscita
+
+            using (var reader = command.ExecuteReader())
+            {
+                return DbHelpers.CreateMessage(reader, action);
+            }
+        }
+
+        public static Message Create(XmlReader xmlReader, DbConnection connection, string operationType, DbCommandBuilder commandBuilder, string action)
+        {
+            int count = 0;
+
+            while (xmlReader.ReadToFollowing("Row"))
+            {
+                var command = commandBuilder.GetInsertCommand();
+                DbHelpers.SetTargetParameters(xmlReader.ReadSubtree(), command.Parameters);
+
+                count = command.ExecuteNonQuery();
+            }
+
+            return DbHelpers.CreateMessage(operationType, count, action);
+        }
+
+        public static Message Read(XmlReader xmlReader, DbConnection connection, string action)
+        {
+            xmlReader.ReadToFollowing("Query");
+            string query = xmlReader.ReadString();
+
+            var command = connection.CreateCommand();
+            command.CommandText = query;
+
+            using (var reader = command.ExecuteReader())
+            {
+                return DbHelpers.CreateMessage(reader, action);
+            }
+        }
+
+        public static Message Update(XmlReader xmlReader, DbConnection connection, string operationType, DbCommandBuilder commandBuilder, string action)
+        {
+            int count = 0;
+
+            while (xmlReader.ReadToFollowing("Pair"))
+            {
+                var command = commandBuilder.GetUpdateCommand();
+
+                xmlReader.ReadToFollowing("Before");
+                DbHelpers.SetSourceParameters(xmlReader.ReadSubtree(), command.Parameters);
+
+                xmlReader.ReadToFollowing("After");
+                DbHelpers.SetTargetParameters(xmlReader.ReadSubtree(), command.Parameters);
+
+                count += command.ExecuteNonQuery();
+            }
+
+            return DbHelpers.CreateMessage(operationType, count, action);
+        }
+
+        public static Message Delete(XmlReader xmlReader, DbConnection connection, string operationType, DbCommandBuilder commandBuilder, string action)
+        {
+            int count = 0;
+
+            while (xmlReader.ReadToFollowing("Row"))
+            {
+                var command = commandBuilder.GetDeleteCommand();
+                DbHelpers.SetSourceParameters(xmlReader.ReadSubtree(), command.Parameters);
+
+                count += command.ExecuteNonQuery();
+            }
+
+            return DbHelpers.CreateMessage(operationType, count, action);
         }
 
         private static Dictionary<string, DbParameter> GetParameters(DbParameterCollection parameters)

@@ -82,85 +82,26 @@ namespace Reply.Cluster.Mercury.Adapters.AdoNet
                         if (operationType == "Execute")
                         {
                             var commandBuilder = Connection.CreateDbCommandBuilder(string.Empty, connection);
-                            var command = connection.CreateCommand();
-
-                            command.CommandType = System.Data.CommandType.StoredProcedure;
-                            command.CommandText = operationTarget;
-
-                            dynamic staticCommandBuilder = new StaticMembersDynamicWrapper(commandBuilder.GetType());
-                            staticCommandBuilder.DeriveParameters(command);
-
-                            DbHelpers.SetParameters(bodyReader.ReadSubtree(), command.Parameters);
-
-                            // TODO: parametri in uscita
-
-                            using (var reader = command.ExecuteReader())
-                            {
-                                return DbHelpers.CreateMessage(reader, responseAction);
-                            }
+                            return DbHelpers.Execute(bodyReader, connection, operationTarget, commandBuilder.GetType(), responseAction);
                         }
                         else if (operationType == "Create")
                         {
-                            int count = 0;
                             var commandBuilder = Connection.CreateDbCommandBuilder(operationTarget, connection);
-
-                            while (bodyReader.ReadToFollowing("Row"))
-                            {
-                                var command = commandBuilder.GetInsertCommand();
-                                DbHelpers.SetTargetParameters(bodyReader.ReadSubtree(), command.Parameters);
-
-                                count = command.ExecuteNonQuery();
-                            }
-
-                            return DbHelpers.CreateMessage(operationType, count, action);
+                            return DbHelpers.Create(bodyReader, connection, operationType, commandBuilder, responseAction);
                         }
                         else if (operationType == "Read")
                         {
-                            bodyReader.ReadToFollowing("Query");
-                            string query = bodyReader.ReadString();
-
-                            var command = connection.CreateCommand();
-                            command.CommandText = query;
-
-                            using (var reader = command.ExecuteReader())
-                            {
-                                return DbHelpers.CreateMessage(reader, responseAction);
-                            }
+                            return DbHelpers.Read(bodyReader, connection, responseAction);
                         }
                         else if (operationType == "Update")
                         {
-                            int count = 0;
                             var commandBuilder = Connection.CreateDbCommandBuilder(operationTarget, connection);
-
-                            while (bodyReader.ReadToFollowing("Pair"))
-                            {
-                                var command = commandBuilder.GetUpdateCommand();
-
-                                bodyReader.ReadToFollowing("Before");
-                                DbHelpers.SetSourceParameters(bodyReader.ReadSubtree(), command.Parameters);
-
-                                bodyReader.ReadToFollowing("After");
-                                DbHelpers.SetTargetParameters(bodyReader.ReadSubtree(), command.Parameters);
-
-                                count += command.ExecuteNonQuery();
-                            }
-
-                            return DbHelpers.CreateMessage(operationType, count, responseAction);
+                            return DbHelpers.Update(bodyReader, connection, operationType, commandBuilder, responseAction);                            
                         }
                         else if (operationType == "Delete")
                         {
-                            int count = 0;
                             var commandBuilder = Connection.CreateDbCommandBuilder(operationTarget, connection);
-
-                            while (bodyReader.ReadToFollowing("Row"))
-                            {
-                                var command = commandBuilder.GetDeleteCommand();
-                                DbHelpers.SetSourceParameters(bodyReader.ReadSubtree(), command.Parameters);
-
-                                count += command.ExecuteNonQuery();
-                            }
-
-                            return DbHelpers.CreateMessage(operationType, count, responseAction);
+                            return DbHelpers.Delete(bodyReader, connection, operationType, commandBuilder, responseAction);            
                         }
                     }
                 }
