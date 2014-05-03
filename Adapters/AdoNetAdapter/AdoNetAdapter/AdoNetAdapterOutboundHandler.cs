@@ -20,7 +20,7 @@ namespace Reply.Cluster.Mercury.Adapters.AdoNet
     public class AdoNetAdapterOutboundHandler : AdoNetAdapterHandlerBase, IOutboundHandler
     {
         private static System.Text.RegularExpressions.Regex operationExp =
-            new System.Text.RegularExpressions.Regex(@"^(?<Target>.+)#(?<Type>Execute|Create|Read|Update|Delete)$");
+            new System.Text.RegularExpressions.Regex(@"^(?<Target>.+)#(?<Type>Execute|MultiExecute|Create|Read|Update|Delete)$");
 
         private static Tuple<string, string> ParseAction(string soapAction)
         {
@@ -83,6 +83,11 @@ namespace Reply.Cluster.Mercury.Adapters.AdoNet
                         {
                             var commandBuilder = Connection.CreateDbCommandBuilder(string.Empty, connection);
                             return DbHelpers.Execute(bodyReader, connection, operationTarget, commandBuilder.GetType(), responseAction);
+                        }
+                        else if (operationType == "MultiExecute")
+                        {
+                            var commandBuilder = Connection.CreateDbCommandBuilder(string.Empty, connection);
+                            return DbHelpers.MultiExecute(bodyReader, connection, operationTarget, commandBuilder.GetType(), responseAction);
                         }
                         else if (operationType == "Create")
                         {

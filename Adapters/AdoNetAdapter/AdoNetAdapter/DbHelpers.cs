@@ -47,6 +47,52 @@ namespace Reply.Cluster.Mercury.Adapters.AdoNet
             { DbType.Xml, new DataContractSerializer(typeof(string)) }
         };
 
+        private static void WriteResult(XmlWriter writer, DbDataReader reader)
+        {
+            string ns = AdoNetAdapter.SERVICENAMESPACE + "/Messages";
+
+            writer.WriteStartElement("InboundData", ns);
+
+            do
+            {
+                writer.WriteStartElement("ResultSet", ns);
+
+                while (reader.Read())
+                {
+                    writer.WriteStartElement("Row", ns);
+
+                    for (int i = 0; i < reader.FieldCount; i++)
+                    {
+                        if (!reader.IsDBNull(i))
+                        {
+                            writer.WriteStartElement(reader.GetName(i), ns);
+
+                            object value = reader[i];
+                            var serializer = new DataContractSerializer(value.GetType());
+                            objectSerializer.WriteObjectContent(writer, value);
+
+                            writer.WriteEndElement();
+                        }
+                    }
+
+                    writer.WriteEndElement();
+                }
+
+                writer.WriteEndElement();
+            } while (reader.NextResult());
+
+            writer.WriteEndElement();
+        }
+
+        private static void WriteResult(XmlWriter writer, string operationType, int count)
+        {
+            string ns = AdoNetAdapter.SERVICENAMESPACE + "/Messages";
+
+            writer.WriteStartElement(operationType + "Result", ns);
+            writer.WriteElementString("Count", ns, count.ToString());
+            writer.WriteEndElement();
+        }
+
         public static Message CreateMessage(DbDataReader reader, string action)
         {
             return CreateMessage(reader, null, action);
@@ -54,41 +100,11 @@ namespace Reply.Cluster.Mercury.Adapters.AdoNet
 
         public static Message CreateMessage(DbDataReader reader, Transaction transaction, string action)
         {
-            string ns = AdoNetAdapter.SERVICENAMESPACE + "/Messages";
-
             var stream = new System.IO.MemoryStream();
 
             using (var writer = XmlWriter.Create(stream, new XmlWriterSettings { NamespaceHandling = NamespaceHandling.OmitDuplicates }))
             {
-                writer.WriteStartElement("InboundData", ns);
-
-                do
-                {
-                    writer.WriteStartElement("ResultSet", ns);
-
-                    while (reader.Read())
-                    {
-                        writer.WriteStartElement("Row", ns);
-
-                        for (int i = 0; i < reader.FieldCount; i++)
-                        {
-                            if (!reader.IsDBNull(i))
-                            {
-                                writer.WriteStartElement(reader.GetName(i), ns);
-
-                                object value = reader[i];
-                                var serializer = new DataContractSerializer(value.GetType());
-                                objectSerializer.WriteObjectContent(writer, value);
-
-                                writer.WriteEndElement();
-                            }
-                        }
-
-                        writer.WriteEndElement();
-                    }
-
-                    writer.WriteEndElement();
-                } while (reader.NextResult());
+                WriteResult(writer, reader);
 
                 writer.WriteEndDocument();
                 writer.Flush();
@@ -102,25 +118,20 @@ namespace Reply.Cluster.Mercury.Adapters.AdoNet
                 return message;
             }
         }
-      
+
         public static Message CreateMessage(string operationType, int count, string action)
         {
-            string ns = AdoNetAdapter.SERVICENAMESPACE + "/Messages";
+            var stream = new System.IO.MemoryStream();
 
-            using (var stream = new System.IO.MemoryStream())
+            using (var writer = XmlWriter.Create(stream))
             {
-                using (var writer = XmlWriter.Create(stream))
-                {
-                    writer.WriteStartElement(operationType + "Result", ns);
-                    writer.WriteElementString("Count", ns, count.ToString());
-                    writer.WriteEndDocument();
+                WriteResult(writer, operationType, count);
 
-                    writer.Flush();
-                    stream.Seek(0, System.IO.SeekOrigin.Begin);
+                writer.WriteEndDocument();
+                writer.Flush();
+                stream.Seek(0, System.IO.SeekOrigin.Begin);
 
-                    using (var xmlReader = XmlReader.Create(stream))
-                        return Message.CreateMessage(MessageVersion.Default, action, xmlReader);
-                }
+                return Message.CreateMessage(MessageVersion.Default, action, XmlReader.Create(stream));
             }
         }
 
@@ -142,8 +153,6 @@ namespace Reply.Cluster.Mercury.Adapters.AdoNet
 
             return parameters;
         }
-
-
 
         internal static void SetParameters(XmlReader reader, DbParameterCollection parameters)
         {
@@ -242,6 +251,47 @@ namespace Reply.Cluster.Mercury.Adapters.AdoNet
             using (var reader = command.ExecuteReader())
             {
                 return DbHelpers.CreateMessage(reader, action);
+            }
+        }
+
+        public static Message MultiExecute(XmlReader xmlReader, DbConnection connection, string procedureName, Type commandBuilderType, string action)
+        {
+            string ns = AdoNetAdapter.SERVICENAMESPACE + "/Messages";
+            dynamic staticCommandBuilder = new StaticMembersDynamicWrapper(commandBuilderType);
+
+            var stream = new System.IO.MemoryStream();
+
+            using (var writer = XmlWriter.Create(stream))
+            {
+                writer.WriteStartElement("MultiExecuteResult", ns);
+
+                xmlReader.MoveToContent();
+                xmlReader.Read();
+
+                while (xmlReader.Read())
+                {
+                    var command = connection.CreateCommand();
+
+                    command.CommandType = System.Data.CommandType.StoredProcedure;
+                    command.CommandText = procedureName;
+
+                    staticCommandBuilder.DeriveParameters(command);
+
+                    DbHelpers.SetParameters(xmlReader.ReadSubtree(), command.Parameters);
+
+                    // TODO: parametri in uscita
+
+                    using (var reader = command.ExecuteReader())
+                    {
+                        WriteResult(writer, reader);
+                    }
+                }
+
+                writer.WriteEndDocument();
+                writer.Flush();
+                stream.Seek(0, System.IO.SeekOrigin.Begin);
+
+                return Message.CreateMessage(MessageVersion.Default, action, XmlReader.Create(stream));
             }
         }
 
