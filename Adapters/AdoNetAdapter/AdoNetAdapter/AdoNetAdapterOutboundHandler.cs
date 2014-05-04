@@ -27,13 +27,8 @@ namespace Reply.Cluster.Mercury.Adapters.AdoNet
             if (!soapAction.StartsWith(AdoNetAdapter.SERVICENAMESPACE))
                 throw new InvalidOperationException();
 
-            Uri actionUri = new Uri(soapAction);
-            Uri operationUri = actionUri.MakeRelativeUri(new Uri(AdoNetAdapter.SERVICENAMESPACE));
-
-            var segments = actionUri.Segments;
-            string actionId = segments[segments.Length - 1];
-
-            var match = operationExp.Match(actionId);
+            string operation = soapAction.Replace(AdoNetAdapter.SERVICENAMESPACE + '/', string.Empty);
+            var match = operationExp.Match(operation);
 
             if (!match.Success)
                 throw new InvalidOperationException();

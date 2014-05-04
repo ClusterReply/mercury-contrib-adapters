@@ -26,6 +26,7 @@ namespace Reply.Cluster.Mercury.Adapters.AdoNet
         internal const string SCHEME = "ado";
         // Namespace for the proxy that will be generated from the adapter schema
         internal const string SERVICENAMESPACE = "http://mercury.cluster.reply.eu/adapters/ado.net/2014/04";
+        internal const string MESSAGENAMESPACE = "http://mercury.cluster.reply.eu/adapters/ado.net/2014/04/Messages";
         // Initializes the AdapterEnvironmentSettings class
         private static AdapterEnvironmentSettings environmentSettings = new AdapterEnvironmentSettings();
 

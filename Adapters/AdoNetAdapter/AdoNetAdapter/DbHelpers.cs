@@ -49,7 +49,7 @@ namespace Reply.Cluster.Mercury.Adapters.AdoNet
 
         private static void WriteResult(XmlWriter writer, DbDataReader reader)
         {
-            string ns = AdoNetAdapter.SERVICENAMESPACE + "/Messages";
+            string ns = AdoNetAdapter.MESSAGENAMESPACE;
 
             writer.WriteStartElement("InboundData", ns);
 
@@ -86,7 +86,7 @@ namespace Reply.Cluster.Mercury.Adapters.AdoNet
 
         private static void WriteResult(XmlWriter writer, string operationType, int count)
         {
-            string ns = AdoNetAdapter.SERVICENAMESPACE + "/Messages";
+            string ns = AdoNetAdapter.MESSAGENAMESPACE;
 
             writer.WriteStartElement(operationType + "Result", ns);
             writer.WriteElementString("Count", ns, count.ToString());
@@ -256,7 +256,7 @@ namespace Reply.Cluster.Mercury.Adapters.AdoNet
 
         public static Message MultiExecute(XmlReader xmlReader, DbConnection connection, string procedureName, Type commandBuilderType, string action)
         {
-            string ns = AdoNetAdapter.SERVICENAMESPACE + "/Messages";
+            string ns = AdoNetAdapter.MESSAGENAMESPACE;
             dynamic staticCommandBuilder = new StaticMembersDynamicWrapper(commandBuilderType);
 
             var stream = new System.IO.MemoryStream();
@@ -299,7 +299,7 @@ namespace Reply.Cluster.Mercury.Adapters.AdoNet
         {
             int count = 0;
 
-            while (xmlReader.ReadToFollowing("Row"))
+            while (xmlReader.ReadToFollowing("Row", AdoNetAdapter.MESSAGENAMESPACE))
             {
                 var command = commandBuilder.GetInsertCommand();
                 DbHelpers.SetTargetParameters(xmlReader.ReadSubtree(), command.Parameters);
@@ -312,7 +312,7 @@ namespace Reply.Cluster.Mercury.Adapters.AdoNet
 
         public static Message Read(XmlReader xmlReader, DbConnection connection, string action)
         {
-            xmlReader.ReadToFollowing("Query");
+            xmlReader.ReadToFollowing("Query", AdoNetAdapter.MESSAGENAMESPACE);
             string query = xmlReader.ReadString();
 
             var command = connection.CreateCommand();
@@ -328,14 +328,14 @@ namespace Reply.Cluster.Mercury.Adapters.AdoNet
         {
             int count = 0;
 
-            while (xmlReader.ReadToFollowing("Pair"))
+            while (xmlReader.ReadToFollowing("Pair", AdoNetAdapter.MESSAGENAMESPACE))
             {
                 var command = commandBuilder.GetUpdateCommand();
 
-                xmlReader.ReadToFollowing("Before");
+                xmlReader.ReadToFollowing("Before", AdoNetAdapter.MESSAGENAMESPACE);
                 DbHelpers.SetSourceParameters(xmlReader.ReadSubtree(), command.Parameters);
 
-                xmlReader.ReadToFollowing("After");
+                xmlReader.ReadToFollowing("After", AdoNetAdapter.MESSAGENAMESPACE);
                 DbHelpers.SetTargetParameters(xmlReader.ReadSubtree(), command.Parameters);
 
                 count += command.ExecuteNonQuery();
@@ -348,7 +348,7 @@ namespace Reply.Cluster.Mercury.Adapters.AdoNet
         {
             int count = 0;
 
-            while (xmlReader.ReadToFollowing("Row"))
+            while (xmlReader.ReadToFollowing("Row", AdoNetAdapter.MESSAGENAMESPACE))
             {
                 var command = commandBuilder.GetDeleteCommand();
                 DbHelpers.SetSourceParameters(xmlReader.ReadSubtree(), command.Parameters);
@@ -357,6 +357,35 @@ namespace Reply.Cluster.Mercury.Adapters.AdoNet
             }
 
             return DbHelpers.CreateMessage(operationType, count, action);
+        }
+
+        public static Message Composite(XmlReader xmlReader, DbConnection connection, Type commandBuilderType, string action)
+        {
+            string ns = AdoNetAdapter.MESSAGENAMESPACE;
+            dynamic staticCommandBuilder = new StaticMembersDynamicWrapper(commandBuilderType);
+
+            var stream = new System.IO.MemoryStream();
+
+            using (var writer = XmlWriter.Create(stream))
+            {
+                writer.WriteStartElement("CompositeResult", ns);
+
+                xmlReader.MoveToContent();
+                xmlReader.Read();
+
+                while (xmlReader.Read())
+                {
+                    string operationType = xmlReader.LocalName;
+
+
+                }
+
+                writer.WriteEndDocument();
+                writer.Flush();
+                stream.Seek(0, System.IO.SeekOrigin.Begin);
+
+                return Message.CreateMessage(MessageVersion.Default, action, XmlReader.Create(stream));
+            }
         }
 
         private static Dictionary<string, DbParameter> GetParameters(DbParameterCollection parameters)

@@ -140,7 +140,7 @@ namespace Reply.Cluster.Mercury.Adapters.AdoNet
                         queryBuilder.AppendFormat("{0}={1}&", key, csBuilder[key]);
                 }
 
-                if (queryBuilder[queryBuilder.Length - 1] == '&')
+                if ((queryBuilder.Length > 0) && (queryBuilder[queryBuilder.Length - 1] == '&'))
                     queryBuilder.Remove(queryBuilder.Length - 1, 1);
 
                 if (queryBuilder.Length > 0)

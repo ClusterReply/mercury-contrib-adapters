@@ -60,12 +60,7 @@ namespace Reply.Cluster.Mercury.Adapters.AdoNet
         #endregion IDisposable
 
         protected virtual void Dispose(bool disposing)
-        {
-            //
-            //TODO: Implement Dispose. Override this method in respective Handler classes
-            //
-            throw new NotImplementedException("The method or operation is not implemented.");
-        }
+        { }
     }
 }
 
