@@ -64,6 +64,8 @@ namespace Reply.Cluster.Mercury.Adapters.AdoNet
             string operationType = operation.Item1;
             string operationTarget = operation.Item2;
 
+            Message result = null;
+
             using (var bodyReader = message.GetReaderAtBodyContents())
             {
                 using (var connection = Connection.CreateDbConnection())
@@ -77,37 +79,39 @@ namespace Reply.Cluster.Mercury.Adapters.AdoNet
                         if (operationType == "Execute")
                         {
                             var commandBuilder = Connection.CreateDbCommandBuilder(string.Empty, connection);
-                            return DbHelpers.Execute(bodyReader, connection, operationTarget, commandBuilder.GetType(), responseAction);
+                            message = DbHelpers.Execute(bodyReader, connection, operationTarget, commandBuilder.GetType(), responseAction);
                         }
                         else if (operationType == "MultiExecute")
                         {
                             var commandBuilder = Connection.CreateDbCommandBuilder(string.Empty, connection);
-                            return DbHelpers.MultiExecute(bodyReader, connection, operationTarget, commandBuilder.GetType(), responseAction);
+                            message = DbHelpers.MultiExecute(bodyReader, connection, operationTarget, commandBuilder.GetType(), responseAction);
                         }
                         else if (operationType == "Create")
                         {
                             var commandBuilder = Connection.CreateDbCommandBuilder(operationTarget, connection);
-                            return DbHelpers.Create(bodyReader, connection, operationType, commandBuilder, responseAction);
+                            message = DbHelpers.Create(bodyReader, connection, operationType, commandBuilder, responseAction);
                         }
                         else if (operationType == "Read")
                         {
-                            return DbHelpers.Read(bodyReader, connection, responseAction);
+                            message = DbHelpers.Read(bodyReader, connection, responseAction);
                         }
                         else if (operationType == "Update")
                         {
                             var commandBuilder = Connection.CreateDbCommandBuilder(operationTarget, connection);
-                            return DbHelpers.Update(bodyReader, connection, operationType, commandBuilder, responseAction);                            
+                            message = DbHelpers.Update(bodyReader, connection, operationType, commandBuilder, responseAction);                            
                         }
                         else if (operationType == "Delete")
                         {
                             var commandBuilder = Connection.CreateDbCommandBuilder(operationTarget, connection);
-                            return DbHelpers.Delete(bodyReader, connection, operationType, commandBuilder, responseAction);            
+                            message = DbHelpers.Delete(bodyReader, connection, operationType, commandBuilder, responseAction);            
                         }
+
+                        scope.Complete();
                     }
                 }
             }
 
-            return null;
+            return message;
         }
 
         #endregion IOutboundHandler Members

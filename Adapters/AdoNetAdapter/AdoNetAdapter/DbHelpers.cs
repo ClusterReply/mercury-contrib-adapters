@@ -304,7 +304,7 @@ namespace Reply.Cluster.Mercury.Adapters.AdoNet
                 var command = commandBuilder.GetInsertCommand();
                 DbHelpers.SetTargetParameters(xmlReader.ReadSubtree(), command.Parameters);
 
-                count = command.ExecuteNonQuery();
+                count += command.ExecuteNonQuery();
             }
 
             return DbHelpers.CreateMessage(operationType, count, action);
@@ -390,7 +390,7 @@ namespace Reply.Cluster.Mercury.Adapters.AdoNet
 
         private static Dictionary<string, DbParameter> GetParameters(DbParameterCollection parameters)
         {
-            return parameters.Cast<DbParameter>().ToDictionary(p => p.SourceColumn);
+            return parameters.Cast<DbParameter>().ToDictionary(p => string.IsNullOrEmpty(p.SourceColumn) ? p.ParameterName.TrimStart('@') : p.SourceColumn);
         }
 
         private static Dictionary<string, DbParameter> GetSourceParameters(DbParameterCollection parameters)
