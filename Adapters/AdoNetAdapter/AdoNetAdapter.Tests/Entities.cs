@@ -18,13 +18,13 @@ namespace Reply.Cluster.Mercury.Adapters.AdoNet.Tests
         public string Name { get; set; }
 
         [DataMember]
-        public DateTime Date { get; set; }
+        public DateTime? Date { get; set; }
 
         [DataMember]
-        public int Count { get; set; }
+        public int? Count { get; set; }
 
         [DataMember]
-        public decimal Value { get; set; }
+        public decimal? Value { get; set; }
     }
 
     [CollectionDataContract(Name = Constants.CREATE, ItemName = Constants.ROW, Namespace = Constants.MESSAGENAMESPACE)]
