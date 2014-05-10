@@ -37,10 +37,10 @@ namespace Reply.Cluster.Mercury.Adapters.File
 
         #region Custom Generated Fields
 
-        private string path = null;
+        private string path = string.Empty;
 
 
-        private string fileName = null;
+        private string fileName = "*.*";
 
         #endregion Custom Generated Fields
 
@@ -57,7 +57,7 @@ namespace Reply.Cluster.Mercury.Adapters.File
         public FileAdapterConnectionUri(Uri uri)
             : base()
         {
-
+            this.Uri = uri;
         }
 
         #endregion Constructors
@@ -102,17 +102,16 @@ namespace Reply.Cluster.Mercury.Adapters.File
         {
             get
             {
-                //
-                //TODO: Return the composed uri in valid format
-                //
-                throw new NotImplementedException("The method or operation is not implemented.");
+                var builder = new UriBuilder(System.IO.Path.Combine(Path, FileName));
+                return builder.Uri;
             }
             set
             {
-                //
-                //TODO: Parse the uri into its relevant parts to produce a valid Uri object. (For example scheme, host, query).
-                //
-                throw new NotImplementedException("The method or operation is not implemented.");
+                if (!value.IsFile)
+                    throw new InvalidUriException("This is not a valid file URI.");
+
+                Path = System.IO.Path.GetDirectoryName(value.LocalPath);
+                FileName = System.IO.Path.GetFileName(value.LocalPath);
             }
         }
 
