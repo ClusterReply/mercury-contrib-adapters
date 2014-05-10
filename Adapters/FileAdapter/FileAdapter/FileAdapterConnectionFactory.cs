@@ -53,6 +53,8 @@ namespace Reply.Cluster.Mercury.Adapters.File
         {
             this.clientCredentials = clientCredentials;
             this.adapter = adapter;
+
+            this.ConnectionUri = connectionUri as FileAdapterConnectionUri;
         }
 
         #region Public Properties
@@ -67,6 +69,8 @@ namespace Reply.Cluster.Mercury.Adapters.File
                 return this.adapter;
             }
         }
+
+        public FileAdapterConnectionUri ConnectionUri { get; private set; }
 
         #endregion Public Properties
 

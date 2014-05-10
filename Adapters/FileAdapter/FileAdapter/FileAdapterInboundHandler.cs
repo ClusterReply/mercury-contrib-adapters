@@ -27,6 +27,10 @@ using System.Collections.Generic;
 using System.Text;
 
 using Microsoft.ServiceModel.Channels.Common;
+using System.Collections.Concurrent;
+using System.Threading;
+using System.IO;
+using System.ServiceModel.Channels;
 #endregion
 
 namespace Reply.Cluster.Mercury.Adapters.File
@@ -40,7 +44,18 @@ namespace Reply.Cluster.Mercury.Adapters.File
             , MetadataLookup metadataLookup)
             : base(connection, metadataLookup)
         {
+            connectionUri = connection.ConnectionFactory.ConnectionUri;
         }
+
+        #region Private Fields
+
+        private FileAdapterConnectionUri connectionUri;
+        private FileSystemWatcher watcher;
+
+        private BlockingCollection<string> queue = new BlockingCollection<string>();
+        private CancellationTokenSource cancelSource = new CancellationTokenSource();
+
+        #endregion Private Fields
 
         #region IInboundHandler Members
 
@@ -49,10 +64,14 @@ namespace Reply.Cluster.Mercury.Adapters.File
         /// </summary>
         public void StartListener(string[] actions, TimeSpan timeout)
         {
-            //
-            //TODO: Implement start adapter listener logic.
-            //
-            throw new NotImplementedException("The method or operation is not implemented.");
+            watcher = new FileSystemWatcher(connectionUri.Path, connectionUri.FileName);
+
+            watcher.Changed += FileEvent;
+        }
+
+        private void FileEvent(object sender, FileSystemEventArgs e)
+        {
+            queue.Add(e.FullPath);
         }
 
         /// <summary>
@@ -60,10 +79,8 @@ namespace Reply.Cluster.Mercury.Adapters.File
         /// </summary>
         public void StopListener(TimeSpan timeout)
         {
-            //
-            //TODO: Implement stop adapter listener logic.
-            //
-            throw new NotImplementedException("The method or operation is not implemented.");
+            watcher.Dispose();
+            cancelSource.Cancel();
         }
 
         /// <summary>
@@ -71,11 +88,31 @@ namespace Reply.Cluster.Mercury.Adapters.File
         /// </summary>
         public bool TryReceive(TimeSpan timeout, out System.ServiceModel.Channels.Message message, out IInboundReply reply)
         {
-            reply = new FileAdapterInboundReply();
-            //
-            //TODO: Implement Try Receive logic.
-            //
-            throw new NotImplementedException("The method or operation is not implemented.");
+            reply = null;
+            message = null;
+
+            if (queue.IsCompleted)
+                return false;
+
+            string path = null;
+            bool result = queue.TryTake(out path, (int)timeout.TotalMilliseconds, cancelSource.Token);
+
+            if (result)
+            {
+                try
+                {
+                    var stream = System.IO.File.OpenWrite(path);
+
+                    message = Message.CreateMessage(MessageVersion.Default, new UriBuilder(path).Uri.ToString(), stream);
+                    reply = new FileAdapterInboundReply(path, stream);
+                }
+                catch
+                {
+                    return false;
+                }
+            }
+
+            return result;
         }
 
         /// <summary>
@@ -83,16 +120,22 @@ namespace Reply.Cluster.Mercury.Adapters.File
         /// </summary>
         public bool WaitForMessage(TimeSpan timeout)
         {
-            //
-            //TODO: Implement Wait for message logic.
-            //
-            throw new NotImplementedException("The method or operation is not implemented.");
+            return true;
         }
 
         #endregion IInboundHandler Members
     }
     internal class FileAdapterInboundReply : InboundReply
     {
+        private FileStream stream;
+        private string path;
+
+        public FileAdapterInboundReply(string path, FileStream stream)
+        {
+            this.path = path;
+            this.stream = stream;
+        }
+
         #region InboundReply Members
 
         /// <summary>
@@ -100,10 +143,7 @@ namespace Reply.Cluster.Mercury.Adapters.File
         /// </summary>
         public override void Abort()
         {
-            //
-            //TODO: Implement abort logic.
-            //
-            throw new NotImplementedException("The method or operation is not implemented.");
+            stream.Close();
         }
 
         /// <summary>
@@ -112,11 +152,8 @@ namespace Reply.Cluster.Mercury.Adapters.File
         public override void Reply(System.ServiceModel.Channels.Message message
             , TimeSpan timeout)
         {
-            //
-            //TODO: Implement reply logic.
-            //
-            throw new NotImplementedException("The method or operation is not implemented.");
-
+            System.IO.File.Delete(path);
+            stream.Close();
         }
 
 
