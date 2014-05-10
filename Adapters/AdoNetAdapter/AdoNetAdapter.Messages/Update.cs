@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
+using System.ServiceModel;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -22,4 +23,18 @@ namespace Reply.Cluster.Mercury.Adapters.AdoNet.Messages
 
     [DataContract(Name = Constants.UPDATE_RESULT, Namespace = Constants.MESSAGENAMESPACE)]
     public class UpdateResult : Result { }
+
+    [MessageContract(IsWrapped = false)]
+    public class UpdateMessage<T>
+    {
+        [MessageBodyMember(Name = Constants.UPDATE, Namespace = Constants.MESSAGENAMESPACE)]
+        public Update<T> Body { get; set; }
+    }
+
+    [MessageContract(IsWrapped = false)]
+    public class UpdateResultMessage
+    {
+        [MessageBodyMember(Name = Constants.UPDATE_RESULT, Namespace = Constants.MESSAGENAMESPACE)]
+        public UpdateResult Body { get; set; }
+    }
 }

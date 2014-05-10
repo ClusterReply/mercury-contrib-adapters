@@ -14,13 +14,17 @@ namespace Reply.Cluster.Mercury.Adapters.AdoNet.Messages
         public const string READ = "Read";
         public const string UPDATE = "Update";
         public const string DELETE = "Delete";
+        public const string COMPOSITE = "Composite";
 
         public const string INBOUND_DATA = "InboundData";
         public const string RESULT_SET = "ResultSet";
         public const string ROW = "Row";
+        public const string RESULT = "Result";
 
+        public const string MULTIEXECUTE_RESULT = "MultiExecuteResult";
         public const string CREATE_RESULT = "CreateResult";
         public const string UPDATE_RESULT = "UpdateResult";
         public const string DELETE_RESULT = "DeleteResult";
+        public const string COMPOSITE_RESULT = "CompositeResult";
     }
 }
