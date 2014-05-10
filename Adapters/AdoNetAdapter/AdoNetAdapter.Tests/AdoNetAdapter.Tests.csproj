@@ -98,6 +98,9 @@
     <None Include="..\..\adapters.snk">
       <Link>adapters.snk</Link>
     </None>
+    <None Include="..\..\Apache.licenseheader">
+      <Link>Apache.licenseheader</Link>
+    </None>
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>

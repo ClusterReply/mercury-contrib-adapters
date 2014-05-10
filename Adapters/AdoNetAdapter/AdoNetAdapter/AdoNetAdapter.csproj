@@ -131,6 +131,9 @@
     <None Include="..\..\adapters.snk">
       <Link>adapters.snk</Link>
     </None>
+    <None Include="..\..\Apache.licenseheader">
+      <Link>Apache.licenseheader</Link>
+    </None>
     <None Include="job_scheduling_data_2_0.xsd">
       <SubType>Designer</SubType>
     </None>
