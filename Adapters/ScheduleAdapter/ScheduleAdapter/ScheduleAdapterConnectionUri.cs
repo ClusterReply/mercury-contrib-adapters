@@ -61,6 +61,7 @@ namespace Reply.Cluster.Mercury.Adapters.Schedule
 
         #region Custom Generated Properties
 
+        [System.ComponentModel.Category("Schedule")]
         public string ScheduleName
         {
             get
@@ -84,17 +85,15 @@ namespace Reply.Cluster.Mercury.Adapters.Schedule
         {
             get
             {
-                //
-                //TODO: Return the composed uri in valid format
-                //
-                throw new NotImplementedException("The method or operation is not implemented.");
+                var builder = new UriBuilder(ScheduleAdapter.SCHEME, ScheduleName);
+                return builder.Uri;
             }
             set
             {
-                //
-                //TODO: Parse the uri into its relevant parts to produce a valid Uri object. (For example scheme, host, query).
-                //
-                throw new NotImplementedException("The method or operation is not implemented.");
+                if (value.Scheme != ScheduleAdapter.SCHEME)
+                    throw new InvalidUriException(string.Format("Invalid scheme '{0}', was expected '{1}'.", value.Scheme, ScheduleAdapter.SCHEME));
+
+                ScheduleName = value.Host;
             }
         }
 

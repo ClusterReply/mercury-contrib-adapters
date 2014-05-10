@@ -27,6 +27,11 @@ using System.Collections.Generic;
 using System.Text;
 
 using Microsoft.ServiceModel.Channels.Common;
+using System.Collections.Concurrent;
+using System.Threading;
+using Reply.Cluster.Mercury.Adapters.Schedule.Jobs;
+using Reply.Cluster.Mercury.Adapters.Helpers;
+using System.ServiceModel.Channels;
 #endregion
 
 namespace Reply.Cluster.Mercury.Adapters.Schedule
@@ -40,7 +45,26 @@ namespace Reply.Cluster.Mercury.Adapters.Schedule
             , MetadataLookup metadataLookup)
             : base(connection, metadataLookup)
         {
+            uri = connection.ConnectionFactory.ConnectionUri.Uri;
+            scheduleName = connection.ConnectionFactory.ConnectionUri.ScheduleName;
+
+            action = string.Format("{0}/{1}#Event", ScheduleAdapter.SERVICENAMESPACE, scheduleName);
+
+            job = Activator.CreateInstance(connection.ConnectionFactory.Adapter.JobType) as IScheduleJob;
         }
+
+        #region Private Fields
+
+        private Uri uri;
+        private string action;
+        private string scheduleName;
+
+        private IScheduleJob job;
+
+        private BlockingCollection<object> queue = new BlockingCollection<object>();
+        private CancellationTokenSource cancelSource = new CancellationTokenSource();
+
+        #endregion Private Fields
 
         #region IInboundHandler Members
 
@@ -49,10 +73,7 @@ namespace Reply.Cluster.Mercury.Adapters.Schedule
         /// </summary>
         public void StartListener(string[] actions, TimeSpan timeout)
         {
-            //
-            //TODO: Implement start adapter listener logic.
-            //
-            throw new NotImplementedException("The method or operation is not implemented.");
+            ScheduleHelper.RegisterEvent(scheduleName, () => queue.Add(job.Execute(uri)));
         }
 
         /// <summary>
@@ -60,10 +81,10 @@ namespace Reply.Cluster.Mercury.Adapters.Schedule
         /// </summary>
         public void StopListener(TimeSpan timeout)
         {
-            //
-            //TODO: Implement stop adapter listener logic.
-            //
-            throw new NotImplementedException("The method or operation is not implemented.");
+            ScheduleHelper.CancelEvent(scheduleName);
+
+            queue.CompleteAdding();
+            cancelSource.Cancel();
         }
 
         /// <summary>
@@ -72,10 +93,23 @@ namespace Reply.Cluster.Mercury.Adapters.Schedule
         public bool TryReceive(TimeSpan timeout, out System.ServiceModel.Channels.Message message, out IInboundReply reply)
         {
             reply = new ScheduleAdapterInboundReply();
-            //
-            //TODO: Implement Try Receive logic.
-            //
-            throw new NotImplementedException("The method or operation is not implemented.");
+            message = null;
+
+            if (queue.IsCompleted)
+                return false;
+
+            object scheduleObject = null;
+            bool result = queue.TryTake(out scheduleObject, (int)timeout.TotalMilliseconds, cancelSource.Token);
+
+            if (result)
+            {
+                if (scheduleObject == null)
+                    return false;
+
+                message = Message.CreateMessage(MessageVersion.Default, action, scheduleObject);
+            }
+
+            return result;
         }
 
         /// <summary>
@@ -83,10 +117,7 @@ namespace Reply.Cluster.Mercury.Adapters.Schedule
         /// </summary>
         public bool WaitForMessage(TimeSpan timeout)
         {
-            //
-            //TODO: Implement Wait for message logic.
-            //
-            throw new NotImplementedException("The method or operation is not implemented.");
+            return true;
         }
 
         #endregion IInboundHandler Members
@@ -99,25 +130,14 @@ namespace Reply.Cluster.Mercury.Adapters.Schedule
         /// Abort the inbound reply call
         /// </summary>
         public override void Abort()
-        {
-            //
-            //TODO: Implement abort logic.
-            //
-            throw new NotImplementedException("The method or operation is not implemented.");
-        }
+        { }
 
         /// <summary>
         /// Reply message implemented
         /// </summary>
         public override void Reply(System.ServiceModel.Channels.Message message
             , TimeSpan timeout)
-        {
-            //
-            //TODO: Implement reply logic.
-            //
-            throw new NotImplementedException("The method or operation is not implemented.");
-
-        }
+        { }
 
 
         #endregion InboundReply Members

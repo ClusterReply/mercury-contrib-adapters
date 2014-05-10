@@ -67,12 +67,12 @@ namespace Reply.Cluster.Mercury.Adapters.Schedule
 
         #region Custom Generated Properties
 
-        [System.Configuration.ConfigurationProperty("jobType", DefaultValue = "DefaultJob")]
-        public string JobType
+        [System.Configuration.ConfigurationProperty("jobType", DefaultValue = typeof(Schedule.Jobs.DefaultScheduleJob))]
+        public Type JobType
         {
             get
             {
-                return ((string)(base["JobType"]));
+                return ((Type)(base["JobType"]));
             }
             set
             {
@@ -101,7 +101,7 @@ namespace Reply.Cluster.Mercury.Adapters.Schedule
             get
             {
                 ConfigurationPropertyCollection configProperties = base.Properties;
-                configProperties.Add(new ConfigurationProperty("JobType", typeof(System.String), "DefaultJob", null, null, ConfigurationPropertyOptions.None));
+                configProperties.Add(new ConfigurationProperty("JobType", typeof(Type), typeof(Schedule.Jobs.DefaultScheduleJob), null, null, ConfigurationPropertyOptions.None));
                 return configProperties;
             }
         }
@@ -125,7 +125,7 @@ namespace Reply.Cluster.Mercury.Adapters.Schedule
         {
             base.ApplyConfiguration(bindingElement);
             ScheduleAdapter adapterBinding = ((ScheduleAdapter)(bindingElement));
-            adapterBinding.JobType = (System.String)this["JobType"];
+            adapterBinding.JobType = (Type)this["JobType"];
         }
 
         /// <summary>

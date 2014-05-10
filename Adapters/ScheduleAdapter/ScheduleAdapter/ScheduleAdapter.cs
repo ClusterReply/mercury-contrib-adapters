@@ -43,7 +43,7 @@ namespace Reply.Cluster.Mercury.Adapters.Schedule
 
         #region Custom Generated Fields
 
-        private string jobType;
+        private Type jobType;
 
         #endregion Custom Generated Fields
 
@@ -71,8 +71,9 @@ namespace Reply.Cluster.Mercury.Adapters.Schedule
 
         #region Custom Generated Properties
 
-        [System.Configuration.ConfigurationProperty("jobType", DefaultValue = "DefaultJob")]
-        public string JobType
+        [System.ComponentModel.Category("Job")]
+        [System.Configuration.ConfigurationProperty("jobType", DefaultValue = typeof(Schedule.Jobs.DefaultScheduleJob))]
+        public Type JobType
         {
             get
             {

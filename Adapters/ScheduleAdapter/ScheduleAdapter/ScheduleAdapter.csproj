@@ -77,7 +77,13 @@
     <Compile Include="AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Reference Include="Common.Logging">
+      <HintPath>..\..\..\packages\Common.Logging.2.1.2\lib\net40\Common.Logging.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.ServiceModel.Channels, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL" />
+    <Reference Include="Quartz">
+      <HintPath>..\..\..\packages\Quartz.2.2.3\lib\net40\Quartz.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Xml" />
     <Reference Include="System.ServiceModel" />
@@ -110,5 +116,19 @@
     <None Include="..\..\Apache.licenseheader">
       <Link>Apache.licenseheader</Link>
     </None>
+    <None Include="job_scheduling_data_2_0.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Helpers\Helpers.csproj">
+      <Project>{6b46a1ec-fd51-4f40-b325-7401deb3f37b}</Project>
+      <Name>Helpers</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ScheduleAdapter.Jobs\ScheduleAdapter.Jobs.csproj">
+      <Project>{fce4eb05-3b94-4d8e-a46c-18bb8345dc79}</Project>
+      <Name>ScheduleAdapter.Jobs</Name>
+    </ProjectReference>
   </ItemGroup>
 </Project>

@@ -58,19 +58,16 @@ namespace Reply.Cluster.Mercury.Adapters.Schedule
         /// </summary>
         private void ApplyConfiguration(string configurationName)
         {
-            /*
             //
             // TODO : replace the <The config name of your adapter> below with the configuration name of your adapter
             //
             BindingsSection bindingsSection = (BindingsSection)System.Configuration.ConfigurationManager.GetSection("system.serviceModel/bindings");
-            ScheduleAdapterBindingCollectionElement bindingCollectionElement = (ScheduleAdapterBindingCollectionElement)bindingsSection["<The config name of your adapter>"];
+            ScheduleAdapterBindingCollectionElement bindingCollectionElement = (ScheduleAdapterBindingCollectionElement)bindingsSection["scheduleBinding"];
             ScheduleAdapterBindingElement element = bindingCollectionElement.Bindings[configurationName];
             if (element != null)
             {
                 element.ApplyConfiguration(this);
             }
-            */
-            throw new NotImplementedException("The method or operation is not implemented.");
         }
 
 
@@ -83,7 +80,7 @@ namespace Reply.Cluster.Mercury.Adapters.Schedule
 
         #region Custom Generated Fields
 
-        private string jobType;
+        private Type jobType;
 
         #endregion Custom Generated Fields
 
@@ -148,8 +145,8 @@ namespace Reply.Cluster.Mercury.Adapters.Schedule
 
         #region Custom Generated Properties
 
-        [System.Configuration.ConfigurationProperty("jobType", DefaultValue = "DefaultJob")]
-        public string JobType
+        [System.Configuration.ConfigurationProperty("jobType", DefaultValue = typeof(Schedule.Jobs.DefaultScheduleJob))]
+        public Type JobType
         {
             get
             {

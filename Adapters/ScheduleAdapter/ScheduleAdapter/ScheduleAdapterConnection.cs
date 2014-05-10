@@ -71,22 +71,14 @@ namespace Reply.Cluster.Mercury.Adapters.Schedule
         /// Closes the connection to the target system
         /// </summary>
         public void Close(TimeSpan timeout)
-        {
-            //
-            //TODO: Implement physical closing of the connection
-            //
-            throw new NotImplementedException("The method or operation is not implemented.");
-        }
+        { }
 
         /// <summary>
         /// Returns a value indicating whether the connection is still valid
         /// </summary>
         public bool IsValid(TimeSpan timeout)
         {
-            //
-            //TODO: Implement physical checking for the validity of the opened connection
-            //
-            throw new NotImplementedException("The method or operation is not implemented.");
+            return true;
 
         }
 
@@ -94,24 +86,13 @@ namespace Reply.Cluster.Mercury.Adapters.Schedule
         /// Opens the connection to the target system.
         /// </summary>
         public void Open(TimeSpan timeout)
-        {
-            //
-            //TODO: Implement physical opening of the connection
-            //
-            throw new NotImplementedException("The method or operation is not implemented.");
-
-        }
+        { }
 
         /// <summary>
         /// Clears the context of the Connection. This method is called when the connection is set back to the connection pool
         /// </summary>
         public void ClearContext()
-        {
-            //
-            //TODO: Implement clear context to set the connection back to the pool.
-            //
-            throw new NotImplementedException("The method or operation is not implemented.");
-        }
+        { }
 
         /// <summary>
         /// Builds a new instance of the specified IConnectionHandler type
@@ -132,12 +113,7 @@ namespace Reply.Cluster.Mercury.Adapters.Schedule
         /// Aborts the connection to the target system
         /// </summary>
         public void Abort()
-        {
-            //
-            //TODO: Implement abort logic. DO NOT throw an exception from this method
-            //
-            throw new NotImplementedException("The method or operation is not implemented.");
-        }
+        { }
 
 
         /// <summary>

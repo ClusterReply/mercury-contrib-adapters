@@ -53,6 +53,8 @@ namespace Reply.Cluster.Mercury.Adapters.Schedule
         {
             this.clientCredentials = clientCredentials;
             this.adapter = adapter;
+
+            ConnectionUri = connectionUri as ScheduleAdapterConnectionUri;
         }
 
         #region Public Properties
@@ -67,6 +69,11 @@ namespace Reply.Cluster.Mercury.Adapters.Schedule
                 return this.adapter;
             }
         }
+
+        /// <summary>
+        /// Returns the Connection Uri for this adapter
+        /// </summary>
+        public ScheduleAdapterConnectionUri ConnectionUri { get; private set; }
 
         #endregion Public Properties
 
