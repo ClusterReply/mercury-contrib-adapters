@@ -100,7 +100,7 @@ namespace Reply.Cluster.Mercury.Adapters.AdoNet
             if (pollingType == PollingType.Simple)
                 pollingTimer.Stop();
             else
-                ScheduleHelper.RegisterEvent(scheduleName, () => ExecutePolling());
+                ScheduleHelper.CancelEvent(scheduleName);
 
             queue.CompleteAdding();
             cancelSource.Cancel();
@@ -120,8 +120,11 @@ namespace Reply.Cluster.Mercury.Adapters.AdoNet
             MessageItem item = null;
             bool result = queue.TryTake(out item, (int)timeout.TotalMilliseconds, cancelSource.Token);
 
-            message = item.Message;
-            reply = new AdoNetAdapterInboundReply(item.Connection, item.Transaction, item.EndOperationStatement);
+            if (result)
+            {
+                message = item.Message;
+                reply = new AdoNetAdapterInboundReply(item.Connection, item.Transaction, item.EndOperationStatement);
+            }
 
             return result;
         }
