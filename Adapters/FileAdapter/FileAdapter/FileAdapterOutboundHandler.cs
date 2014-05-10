@@ -28,6 +28,7 @@ using System.Text;
 using System.ServiceModel.Channels;
 
 using Microsoft.ServiceModel.Channels.Common;
+using System.IO;
 #endregion
 
 namespace Reply.Cluster.Mercury.Adapters.File
@@ -51,10 +52,31 @@ namespace Reply.Cluster.Mercury.Adapters.File
         /// </summary>
         public Message Execute(Message message, TimeSpan timeout)
         {
-            //
-            //TODO: Implement Execute
-            //
-            throw new NotImplementedException("The method or operation is not implemented.");
+            string sourcePath = new Uri(message.Headers.Action).LocalPath;
+            string targetPath = Path.Combine(Connection.ConnectionFactory.ConnectionUri.Path, Path.GetFileName(sourcePath));
+
+            Stream outputStream = null;
+            var inputStream = message.GetBody<Stream>();
+
+            switch (Connection.ConnectionFactory.Adapter.OverwriteAction)
+            {
+                case OverwriteAction.None:
+                    outputStream = System.IO.File.Open(targetPath, FileMode.CreateNew);
+                    break;
+                case OverwriteAction.Replace:
+                    outputStream = System.IO.File.Create(targetPath);
+                    break;
+                case OverwriteAction.Append:
+                    outputStream = System.IO.File.OpenWrite(targetPath);
+                    break;
+            }
+
+            using (outputStream)
+            {
+                inputStream.CopyTo(outputStream);
+
+                return Message.CreateMessage(MessageVersion.Default, string.Empty);
+            }
         }
 
         #endregion IOutboundHandler Members

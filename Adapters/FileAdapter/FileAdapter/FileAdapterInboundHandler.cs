@@ -80,6 +80,8 @@ namespace Reply.Cluster.Mercury.Adapters.File
         public void StopListener(TimeSpan timeout)
         {
             watcher.Dispose();
+
+            queue.CompleteAdding();
             cancelSource.Cancel();
         }
 
