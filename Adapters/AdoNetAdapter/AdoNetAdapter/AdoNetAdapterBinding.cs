@@ -58,19 +58,13 @@ namespace Reply.Cluster.Mercury.Adapters.AdoNet
         /// </summary>
         private void ApplyConfiguration(string configurationName)
         {
-            /*
-            //
-            // TODO : replace the <The config name of your adapter> below with the configuration name of your adapter
-            //
             BindingsSection bindingsSection = (BindingsSection)System.Configuration.ConfigurationManager.GetSection("system.serviceModel/bindings");
-            AdoNetAdapterBindingCollectionElement bindingCollectionElement = (AdoNetAdapterBindingCollectionElement)bindingsSection["<The config name of your adapter>"];
+            AdoNetAdapterBindingCollectionElement bindingCollectionElement = (AdoNetAdapterBindingCollectionElement)bindingsSection["adoNetBinding"];
             AdoNetAdapterBindingElement element = bindingCollectionElement.Bindings[configurationName];
             if (element != null)
             {
                 element.ApplyConfiguration(this);
             }
-            */
-            throw new NotImplementedException("The method or operation is not implemented.");
         }
 
 
