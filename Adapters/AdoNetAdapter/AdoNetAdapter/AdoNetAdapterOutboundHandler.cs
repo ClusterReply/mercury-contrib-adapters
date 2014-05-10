@@ -79,31 +79,31 @@ namespace Reply.Cluster.Mercury.Adapters.AdoNet
                         if (operationType == "Execute")
                         {
                             var commandBuilder = Connection.CreateDbCommandBuilder(string.Empty, connection);
-                            message = DbHelpers.Execute(bodyReader, connection, operationTarget, commandBuilder.GetType(), responseAction);
+                            result = DbHelpers.Execute(bodyReader, connection, operationTarget, commandBuilder.GetType(), responseAction);
                         }
                         else if (operationType == "MultiExecute")
                         {
                             var commandBuilder = Connection.CreateDbCommandBuilder(string.Empty, connection);
-                            message = DbHelpers.MultiExecute(bodyReader, connection, operationTarget, commandBuilder.GetType(), responseAction);
+                            result = DbHelpers.MultiExecute(bodyReader, connection, operationTarget, commandBuilder.GetType(), responseAction);
                         }
                         else if (operationType == "Create")
                         {
                             var commandBuilder = Connection.CreateDbCommandBuilder(operationTarget, connection);
-                            message = DbHelpers.Create(bodyReader, connection, operationType, commandBuilder, responseAction);
+                            result = DbHelpers.Create(bodyReader, connection, operationType, commandBuilder, responseAction);
                         }
                         else if (operationType == "Read")
                         {
-                            message = DbHelpers.Read(bodyReader, connection, responseAction);
+                            result = DbHelpers.Read(bodyReader, connection, responseAction);
                         }
                         else if (operationType == "Update")
                         {
                             var commandBuilder = Connection.CreateDbCommandBuilder(operationTarget, connection);
-                            message = DbHelpers.Update(bodyReader, connection, operationType, commandBuilder, responseAction);                            
+                            result = DbHelpers.Update(bodyReader, connection, operationType, commandBuilder, responseAction);                            
                         }
                         else if (operationType == "Delete")
                         {
                             var commandBuilder = Connection.CreateDbCommandBuilder(operationTarget, connection);
-                            message = DbHelpers.Delete(bodyReader, connection, operationType, commandBuilder, responseAction);            
+                            result = DbHelpers.Delete(bodyReader, connection, operationType, commandBuilder, responseAction);            
                         }
 
                         scope.Complete();
@@ -111,7 +111,7 @@ namespace Reply.Cluster.Mercury.Adapters.AdoNet
                 }
             }
 
-            return message;
+            return result;
         }
 
         #endregion IOutboundHandler Members
