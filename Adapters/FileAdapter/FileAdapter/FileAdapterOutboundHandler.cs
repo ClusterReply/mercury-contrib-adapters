@@ -29,6 +29,7 @@ using System.ServiceModel.Channels;
 
 using Microsoft.ServiceModel.Channels.Common;
 using System.IO;
+using Reply.Cluster.Mercury.Adapters.Helpers;
 #endregion
 
 namespace Reply.Cluster.Mercury.Adapters.File
@@ -52,8 +53,11 @@ namespace Reply.Cluster.Mercury.Adapters.File
         /// </summary>
         public Message Execute(Message message, TimeSpan timeout)
         {
+            var generator = new NameGenerator(message, 
+                Connection.ConnectionFactory.ConnectionUri.Path, Connection.ConnectionFactory.ConnectionUri.FileName);
+
             string sourcePath = new Uri(message.Headers.Action).LocalPath;
-            string targetPath = Path.Combine(Connection.ConnectionFactory.ConnectionUri.Path, Path.GetFileName(sourcePath));
+            string targetPath = Path.Combine(generator.Folder, generator.FileName);
 
             Stream outputStream = null;
             var inputStream = message.GetBody<Stream>();
