@@ -45,6 +45,9 @@ namespace Reply.Cluster.Mercury.Adapters.File
             : base(connection, metadataLookup)
         {
             connectionUri = connection.ConnectionFactory.ConnectionUri;
+
+            watcher = new FileSystemWatcher(connectionUri.Path, connectionUri.FileName);
+            watcher.Changed += FileEvent;
         }
 
         #region Private Fields
@@ -64,14 +67,9 @@ namespace Reply.Cluster.Mercury.Adapters.File
         /// </summary>
         public void StartListener(string[] actions, TimeSpan timeout)
         {
-            watcher = new FileSystemWatcher(connectionUri.Path, connectionUri.FileName);
+            watcher.EnableRaisingEvents = true;
 
-            watcher.Changed += FileEvent;
-        }
-
-        private void FileEvent(object sender, FileSystemEventArgs e)
-        {
-            queue.Add(e.FullPath);
+            GetFiles();
         }
 
         /// <summary>
@@ -79,7 +77,7 @@ namespace Reply.Cluster.Mercury.Adapters.File
         /// </summary>
         public void StopListener(TimeSpan timeout)
         {
-            watcher.Dispose();
+            watcher.EnableRaisingEvents = false;
 
             queue.CompleteAdding();
             cancelSource.Cancel();
@@ -103,7 +101,7 @@ namespace Reply.Cluster.Mercury.Adapters.File
             {
                 try
                 {
-                    var stream = System.IO.File.OpenWrite(path);
+                    var stream = System.IO.File.Open(path, FileMode.Open, FileAccess.Read, FileShare.Delete);
 
                     message = Message.CreateMessage(MessageVersion.Default, new UriBuilder(path).Uri.ToString(), stream);
                     reply = new FileAdapterInboundReply(path, stream);
@@ -126,6 +124,35 @@ namespace Reply.Cluster.Mercury.Adapters.File
         }
 
         #endregion IInboundHandler Members
+
+        #region IDisposable Members
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+                watcher.Dispose();
+
+            base.Dispose(disposing);
+        }
+
+        #endregion
+
+        #region Private Members
+
+        private void GetFiles()
+        {
+            var files = Directory.GetFiles(connectionUri.Path, connectionUri.FileName);
+
+            foreach (string file in files)
+                queue.Add(file);
+        }
+
+        private void FileEvent(object sender, FileSystemEventArgs e)
+        {
+            queue.Add(e.FullPath);
+        }
+
+        #endregion
     }
     internal class FileAdapterInboundReply : InboundReply
     {
