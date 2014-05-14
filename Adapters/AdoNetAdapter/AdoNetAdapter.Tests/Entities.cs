@@ -26,16 +26,16 @@ using System.Threading.Tasks;
 namespace Reply.Cluster.Mercury.Adapters.AdoNet.Tests
 {
     [DataContract(Namespace = Constants.MESSAGENAMESPACE)]
-    class Entity
+    public class Entity
     {
         [DataMember]
-        public Guid ID { get; set; }
+        public Guid Id { get; set; }
 
         [DataMember]
         public string Name { get; set; }
 
         [DataMember]
-        public DateTime? Date { get; set; }
+        public string Date { get; set; }
 
         [DataMember]
         public int? Count { get; set; }

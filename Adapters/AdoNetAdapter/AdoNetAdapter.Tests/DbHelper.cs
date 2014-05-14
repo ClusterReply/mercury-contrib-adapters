@@ -72,7 +72,7 @@ namespace Reply.Cluster.Mercury.Adapters.AdoNet.Tests
             var rows = body[0].OrderBy(r => r.Name).ToArray();
 
             Assert.AreEqual(rows[0].Name, "A");
-            Assert.AreEqual(rows[0].Date, new DateTime(2014, 2, 5));
+            Assert.AreEqual(rows[0].Date, "2014-02-05");
             Assert.AreEqual(rows[0].Count, 3);
             Assert.AreEqual(rows[0].Value, (decimal)12.5);
 
