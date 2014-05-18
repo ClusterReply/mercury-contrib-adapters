@@ -59,6 +59,9 @@ namespace Reply.Cluster.Mercury.Adapters.File
             string sourcePath = new Uri(message.Headers.Action).LocalPath;
             string targetPath = Path.Combine(generator.Folder, generator.FileName);
 
+            if (!Directory.Exists(targetPath))
+                Directory.CreateDirectory(targetPath);
+
             Stream outputStream = null;
             var inputStream = message.GetBody<Stream>();
 
