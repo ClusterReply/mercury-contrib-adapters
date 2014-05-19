@@ -57,13 +57,16 @@ namespace Reply.Cluster.Mercury.Adapters.File
                 Connection.ConnectionFactory.ConnectionUri.Path, Connection.ConnectionFactory.ConnectionUri.FileName);
 
             string sourcePath = new Uri(message.Headers.Action).LocalPath;
-            string targetPath = Path.Combine(generator.Folder, generator.FileName);
 
-            if (!Directory.Exists(targetPath))
-                Directory.CreateDirectory(targetPath);
+            string targetFolder = generator.Folder;
+            string targetPath = Path.Combine(targetFolder, generator.FileName);
+
+            if (!Directory.Exists(targetFolder))
+                Directory.CreateDirectory(targetFolder);
 
             Stream outputStream = null;
-            var inputStream = message.GetBody<Stream>();
+            //var inputStream = message.GetBody<Stream>();
+            var inputData = message.GetBody<byte[]>();
 
             switch (Connection.ConnectionFactory.Adapter.OverwriteAction)
             {
@@ -80,9 +83,12 @@ namespace Reply.Cluster.Mercury.Adapters.File
 
             using (outputStream)
             {
-                inputStream.CopyTo(outputStream);
+                using (var writer = new BinaryWriter(outputStream))
+                {
+                    writer.Write(inputData);
 
-                return Message.CreateMessage(MessageVersion.Default, string.Empty);
+                    return Message.CreateMessage(MessageVersion.Default, string.Empty);
+                }
             }
         }
 

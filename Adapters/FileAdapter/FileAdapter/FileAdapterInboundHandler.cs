@@ -101,10 +101,14 @@ namespace Reply.Cluster.Mercury.Adapters.File
             {
                 try
                 {
-                    var stream = System.IO.File.Open(path, FileMode.Open, FileAccess.Read, FileShare.Delete);
-
-                    message = Message.CreateMessage(MessageVersion.Default, new UriBuilder(path).Uri.ToString(), stream);
-                    reply = new FileAdapterInboundReply(path, stream);
+                    using (var stream = System.IO.File.Open(path, FileMode.Open, FileAccess.Read, FileShare.Delete))
+                    {
+                        using (var reader = new BinaryReader(stream))
+                        {
+                            message = Message.CreateMessage(MessageVersion.Default, new UriBuilder(path).Uri.ToString(), reader.ReadBytes((int)stream.Length));
+                            reply = new FileAdapterInboundReply(path, stream);
+                        }
+                    }
                 }
                 catch
                 {
