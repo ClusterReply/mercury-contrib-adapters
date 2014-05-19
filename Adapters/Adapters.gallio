@@ -3,7 +3,7 @@
   <testPackage shadowCopy="false" debug="false">
     <files>
       <file>AdoNetAdapter\AdoNetAdapter.Tests\bin\Debug\Reply.Cluster.Mercury.Adapters.AdoNet.AdoNetAdapter.Tests.dll</file>
-      <file>FileAdapter\FileAdapter.Tests\bin\Debug\Reply.Cluster.Mercury.Adapters..File.FileAdapter.Tests.dll</file>
+      <file>FileAdapter\FileAdapter.Tests\bin\Debug\Reply.Cluster.Mercury.Adapters.File.FileAdapter.Tests.dll</file>
     </files>
     <hintDirectories />
     <excludedFrameworkIds />
