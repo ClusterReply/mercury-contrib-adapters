@@ -21,6 +21,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.ServiceModel;
 using System.ServiceModel.Channels;
 using System.ServiceModel.Description;
 using System.Text;
@@ -48,11 +49,11 @@ namespace Reply.Cluster.Mercury.Adapters.File.Tests
             string inputFile = Path.Combine(inputFolder, "File.txt");
             System.IO.File.WriteAllText(inputFile, Properties.Resources.TestFile);
 
-            var inputHandler = CreateHandler(inputFolder, "*.txt");
+            var inputHandler = Internal_CreateHandler(inputFolder, "*.txt");
 
             try
             {
-                CheckFile(inputHandler, inputFile, Properties.Resources.TestFile);
+                Internal_CheckFile(inputHandler, inputFile, Properties.Resources.TestFile);
             }
             finally
             {
@@ -63,14 +64,14 @@ namespace Reply.Cluster.Mercury.Adapters.File.Tests
         [Test]
         public void Internal_ReadFile_SinglePost()
         {
-            var inputHandler = CreateHandler(inputFolder, "*.txt");
+            var inputHandler = Internal_CreateHandler(inputFolder, "*.txt");
 
             try
             {
                 string inputFile = Path.Combine(inputFolder, "File.txt");
                 System.IO.File.WriteAllText(inputFile, Properties.Resources.TestFile);
 
-                CheckFile(inputHandler, inputFile, Properties.Resources.TestFile);
+                Internal_CheckFile(inputHandler, inputFile, Properties.Resources.TestFile);
             }
             finally
             {
@@ -84,16 +85,16 @@ namespace Reply.Cluster.Mercury.Adapters.File.Tests
             string inputFile1 = Path.Combine(inputFolder, "File1.txt");
             System.IO.File.WriteAllText(inputFile1, Properties.Resources.TestFile);
 
-            var inputHandler = CreateHandler(inputFolder, "*.txt");
+            var inputHandler = Internal_CreateHandler(inputFolder, "*.txt");
 
             try
             {
-                CheckFile(inputHandler, inputFile1, Properties.Resources.TestFile); 
+                Internal_CheckFile(inputHandler, inputFile1, Properties.Resources.TestFile); 
                 
                 string inputFile2 = Path.Combine(inputFolder, "File2.txt");
                 System.IO.File.WriteAllText(inputFile2, Properties.Resources.TestFile_Existing);
 
-                CheckFile(inputHandler, inputFile2, Properties.Resources.TestFile_Existing);
+                Internal_CheckFile(inputHandler, inputFile2, Properties.Resources.TestFile_Existing);
             }
             finally
             {
@@ -101,7 +102,66 @@ namespace Reply.Cluster.Mercury.Adapters.File.Tests
             }
         }
 
-        private FileAdapterInboundHandler CreateHandler(string inputFolder, string filter)
+        [Test]
+        public void External_ReadFile_SinglePre()
+        {
+            string inputFile = Path.Combine(inputFolder, "File.txt");
+            System.IO.File.WriteAllText(inputFile, Properties.Resources.TestFile);
+
+            var serviceHost = External_CreateService(inputFolder, "*.txt");
+
+            try
+            {
+                External_CheckFile(serviceHost, inputFile, Properties.Resources.TestFile);
+            }
+            finally
+            {
+                serviceHost.Close();
+            }
+        }
+
+        [Test]
+        public void External_ReadFile_SinglePost()
+        {
+            var serviceHost = External_CreateService(inputFolder, "*.txt");
+
+            try
+            {
+                string inputFile = Path.Combine(inputFolder, "File.txt");
+                System.IO.File.WriteAllText(inputFile, Properties.Resources.TestFile);
+
+                External_CheckFile(serviceHost, inputFile, Properties.Resources.TestFile);
+            }
+            finally
+            {
+                serviceHost.Close();
+            }
+        }
+
+        [Test]
+        public void External_ReadFile_PreAndPost()
+        {
+            string inputFile1 = Path.Combine(inputFolder, "File1.txt");
+            System.IO.File.WriteAllText(inputFile1, Properties.Resources.TestFile);
+
+            var serviceHost = External_CreateService(inputFolder, "*.txt");
+
+            try
+            {
+                External_CheckFile(serviceHost, inputFile1, Properties.Resources.TestFile);
+
+                string inputFile2 = Path.Combine(inputFolder, "File2.txt");
+                System.IO.File.WriteAllText(inputFile2, Properties.Resources.TestFile_Existing);
+
+                External_CheckFile(serviceHost, inputFile2, Properties.Resources.TestFile_Existing);
+            }
+            finally
+            {
+                serviceHost.Close();
+            }
+        }
+
+        private FileAdapterInboundHandler Internal_CreateHandler(string inputFolder, string filter)
         {
             var adapter = new FileAdapter();
             var connectionUri = new FileAdapterConnectionUri { Path = inputFolder, FileName = filter };
@@ -115,7 +175,7 @@ namespace Reply.Cluster.Mercury.Adapters.File.Tests
             return inputHandler;
         }
 
-        private void CheckFile(FileAdapterInboundHandler inputHandler, string inputFile, string expectedContent)
+        private void Internal_CheckFile(FileAdapterInboundHandler inputHandler, string inputFile, string expectedContent)
         {
             Message message;
             IInboundReply reply;
@@ -129,6 +189,32 @@ namespace Reply.Cluster.Mercury.Adapters.File.Tests
 
             using (var reader = new StreamReader(new MemoryStream(body)))
                 Assert.AreEqual(expectedContent, reader.ReadToEnd());
+
+            Assert.IsFalse(System.IO.File.Exists(inputFile));
+        }
+
+        private ServiceHost External_CreateService(string inputFolder, string filter)
+        {
+            var instance = new Service();
+            var host = new ServiceHost(instance);
+            
+            host.AddServiceEndpoint(typeof(IService), new FileAdapterBinding(), new FileAdapterConnectionUri { Path = inputFolder, FileName = filter }.Uri);
+            host.Open();
+
+            return host;
+        }
+
+        private void External_CheckFile(ServiceHost host, string inputFile, string expectedContent)
+        {
+            System.Threading.Thread.Sleep(1000);
+
+            MessageItem message;
+            var instance = host.SingletonInstance as Service;
+            
+            Assert.IsTrue(instance.Queue.TryTake(out message, TimeSpan.FromMinutes(1)));
+
+            Assert.AreEqual(new Uri(inputFile), new Uri(message.Action));
+            Assert.AreEqual(expectedContent, message.Data);
 
             Assert.IsFalse(System.IO.File.Exists(inputFile));
         }

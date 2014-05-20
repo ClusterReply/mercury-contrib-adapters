@@ -10,8 +10,8 @@
     <properties />
   </testPackage>
   <testFilters>
-    <testFilter filterName="AutoSave" filterExpr="Id: a19f1f6420f4b86f" />
-    <testFilter filterName="LastRun" filterExpr="Id: a19f1f6420f4b86f" />
+    <testFilter filterName="AutoSave" filterExpr="Id: 27a0cb49f9556121" />
+    <testFilter filterName="LastRun" filterExpr="Id: 27a0cb49f9556121" />
   </testFilters>
   <extensionSpecifications />
   <reportDirectory>C:\Users\Administrator\AppData\Roaming\Gallio\Icarus\Reports</reportDirectory>
