@@ -64,6 +64,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Inbound.cs" />
     <Compile Include="IService.cs" />
     <Compile Include="Outbound.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
