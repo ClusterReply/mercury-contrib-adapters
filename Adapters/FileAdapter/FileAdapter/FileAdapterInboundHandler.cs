@@ -95,7 +95,7 @@ namespace Reply.Cluster.Mercury.Adapters.File
                 return false;
 
             string path = null;
-            bool result = queue.TryTake(out path, (int)timeout.TotalMilliseconds, cancelSource.Token);
+            bool result = queue.TryTake(out path, (int)Math.Min(timeout.TotalMilliseconds, (long)int.MaxValue), cancelSource.Token);
 
             if (result)
             {

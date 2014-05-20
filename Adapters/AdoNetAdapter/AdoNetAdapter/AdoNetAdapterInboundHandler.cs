@@ -118,7 +118,7 @@ namespace Reply.Cluster.Mercury.Adapters.AdoNet
                 return false;
             
             MessageItem item = null;
-            bool result = queue.TryTake(out item, (int)timeout.TotalMilliseconds, cancelSource.Token);
+            bool result = queue.TryTake(out item, (int)Math.Min(timeout.TotalMilliseconds, (long)int.MaxValue), cancelSource.Token);
 
             if (result)
             {

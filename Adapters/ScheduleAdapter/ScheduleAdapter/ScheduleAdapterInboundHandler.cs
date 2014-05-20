@@ -99,7 +99,7 @@ namespace Reply.Cluster.Mercury.Adapters.Schedule
                 return false;
 
             object scheduleObject = null;
-            bool result = queue.TryTake(out scheduleObject, (int)timeout.TotalMilliseconds, cancelSource.Token);
+            bool result = queue.TryTake(out scheduleObject, (int)Math.Min(timeout.TotalMilliseconds, (long)int.MaxValue), cancelSource.Token);
 
             if (result)
             {
