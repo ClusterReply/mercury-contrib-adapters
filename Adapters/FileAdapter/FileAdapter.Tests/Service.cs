@@ -54,10 +54,10 @@ namespace Reply.Cluster.Mercury.Adapters.File.Tests
         public MessageItem(Message message)
         {
             Action = message.Headers.Action;
-            
-            byte[] body = message.GetBody<byte[]>();
 
-            using (var reader = new StreamReader(new MemoryStream(body)))
+            Stream body = message.GetBody<Stream>();
+
+            using (var reader = new StreamReader(body))
                 Data = reader.ReadToEnd();
         }
 

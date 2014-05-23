@@ -30,6 +30,7 @@ using System.ServiceModel.Channels;
 using Microsoft.ServiceModel.Channels.Common;
 using System.IO;
 using Reply.Cluster.Mercury.Adapters.Helpers;
+using System.Xml;
 #endregion
 
 namespace Reply.Cluster.Mercury.Adapters.File
@@ -65,9 +66,7 @@ namespace Reply.Cluster.Mercury.Adapters.File
                 Directory.CreateDirectory(targetFolder);
 
             Stream outputStream = null;
-            //var inputStream = message.GetBody<Stream>();
-            var inputData = message.GetBody<byte[]>();
-
+            
             switch (Connection.ConnectionFactory.Adapter.OverwriteAction)
             {
                 case OverwriteAction.None:
@@ -80,15 +79,13 @@ namespace Reply.Cluster.Mercury.Adapters.File
                     outputStream = System.IO.File.OpenWrite(targetPath);
                     break;
             }
-
+            
             using (outputStream)
             {
-                using (var writer = new BinaryWriter(outputStream))
-                {
-                    writer.Write(inputData);
+                var inputStream = message.GetBody<Stream>();
+                inputStream.CopyTo(outputStream);
 
-                    return Message.CreateMessage(MessageVersion.Default, string.Empty);
-                }
+                return Message.CreateMessage(MessageVersion.Default, string.Empty);
             }
         }
 
