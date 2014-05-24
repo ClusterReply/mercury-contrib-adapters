@@ -38,6 +38,18 @@ namespace Reply.Cluster.Mercury.Adapters.File
 {
     public class FileAdapterInboundHandler : FileAdapterHandlerBase, IInboundHandler
     {
+        private class FileItem
+        {
+            public FileItem(string path, FileStream stream)
+            {
+                Path = path;
+                Stream = stream;
+            }
+
+            public string Path { get; private set; }
+            public FileStream Stream { get; private set; }
+        }
+
         /// <summary>
         /// Initializes a new instance of the FileAdapterInboundHandler class
         /// </summary>
@@ -49,6 +61,9 @@ namespace Reply.Cluster.Mercury.Adapters.File
 
             watcher = new FileSystemWatcher(connectionUri.Path, connectionUri.FileName);
             watcher.Changed += FileEvent;
+
+            pollingInterval = connection.ConnectionFactory.Adapter.PollingInterval;
+            timer = new Timer(new TimerCallback(t => GetFiles()));
         }
 
         #region Private Fields
@@ -56,7 +71,10 @@ namespace Reply.Cluster.Mercury.Adapters.File
         private FileAdapterConnectionUri connectionUri;
         private FileSystemWatcher watcher;
 
-        private BlockingCollection<string> queue = new BlockingCollection<string>();
+        private int pollingInterval;
+        private Timer timer;
+
+        private BlockingCollection<FileItem> queue = new BlockingCollection<FileItem>();
         private CancellationTokenSource cancelSource = new CancellationTokenSource();
 
         #endregion Private Fields
@@ -68,9 +86,8 @@ namespace Reply.Cluster.Mercury.Adapters.File
         /// </summary>
         public void StartListener(string[] actions, TimeSpan timeout)
         {
+            timer.Change(0, pollingInterval * 1000);
             watcher.EnableRaisingEvents = true;
-
-            GetFiles();
         }
 
         /// <summary>
@@ -78,6 +95,7 @@ namespace Reply.Cluster.Mercury.Adapters.File
         /// </summary>
         public void StopListener(TimeSpan timeout)
         {
+            timer.Change(Timeout.Infinite, Timeout.Infinite);
             watcher.EnableRaisingEvents = false;
 
             queue.CompleteAdding();
@@ -95,24 +113,15 @@ namespace Reply.Cluster.Mercury.Adapters.File
             if (queue.IsCompleted)
                 return false;
 
-            string path = null;
-            bool result = queue.TryTake(out path, (int)Math.Min(timeout.TotalMilliseconds, (long)int.MaxValue), cancelSource.Token);
+            FileItem item = null;
+            bool result = queue.TryTake(out item, (int)Math.Min(timeout.TotalMilliseconds, (long)int.MaxValue), cancelSource.Token);
 
             if (result)
             {
-                try
-                {
-                    var stream = System.IO.File.Open(path, FileMode.Open, FileAccess.Read, FileShare.Delete);
+                message = ByteStreamMessage.CreateMessage(item.Stream);
+                message.Headers.Action = new UriBuilder(item.Path).Uri.ToString();
 
-                    message = ByteStreamMessage.CreateMessage(stream);
-                    message.Headers.Action = new UriBuilder(path).Uri.ToString();
-
-                    reply = new FileAdapterInboundReply(path, stream);
-                }
-                catch
-                {
-                    return false;
-                }
+                reply = new FileAdapterInboundReply(item.Path, item.Stream);
             }
 
             return result;
@@ -147,12 +156,26 @@ namespace Reply.Cluster.Mercury.Adapters.File
             var files = Directory.GetFiles(connectionUri.Path, connectionUri.FileName);
 
             foreach (string file in files)
-                queue.Add(file);
+                AddFileToQueue(file);
         }
 
         private void FileEvent(object sender, FileSystemEventArgs e)
         {
-            queue.Add(e.FullPath);
+            AddFileToQueue(e.FullPath);
+        }
+
+        private void AddFileToQueue(string path)
+        {
+            try
+            {
+                if (System.IO.File.Exists(path))
+                {
+                    var stream = System.IO.File.Open(path, FileMode.Open, FileAccess.Read, FileShare.Delete);
+
+                    queue.Add(new FileItem(path, stream));
+                }
+            }
+            catch (IOException) { }     
         }
 
         #endregion
