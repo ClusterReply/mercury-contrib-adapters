@@ -51,8 +51,9 @@ namespace Reply.Cluster.Mercury.Adapters.AdoNet
 
             if (pollingType == PollingType.Simple)
             {
-                pollingTimer = new System.Timers.Timer((double)connection.ConnectionFactory.Adapter.PollingInterval * 1000);
-                pollingTimer.Elapsed += pollingTimer_Elapsed;
+                pollingInterval = connection.ConnectionFactory.Adapter.PollingInterval * 1000;
+
+                pollingTimer = new Timer(new TimerCallback(t => ExecutePolling()));
             }
             else
             {
@@ -71,7 +72,8 @@ namespace Reply.Cluster.Mercury.Adapters.AdoNet
         private string action;
         private PollingType pollingType;
 
-        private System.Timers.Timer pollingTimer;
+        private Timer pollingTimer;
+        private int pollingInterval;
         private string scheduleName;
 
         private BlockingCollection<MessageItem> queue = new BlockingCollection<MessageItem>();
@@ -87,7 +89,7 @@ namespace Reply.Cluster.Mercury.Adapters.AdoNet
         public void StartListener(string[] actions, TimeSpan timeout)
         {
             if (pollingType == PollingType.Simple)
-                pollingTimer.Start();
+                pollingTimer.Change(0, pollingInterval);
             else
                 ScheduleHelper.RegisterEvent(scheduleName, () => ExecutePolling());
         }
@@ -98,7 +100,7 @@ namespace Reply.Cluster.Mercury.Adapters.AdoNet
         public void StopListener(TimeSpan timeout)
         {
             if (pollingType == PollingType.Simple)
-                pollingTimer.Stop();
+                pollingTimer.Change(Timeout.Infinite, Timeout.Infinite);
             else
                 ScheduleHelper.CancelEvent(scheduleName);
 
@@ -142,11 +144,6 @@ namespace Reply.Cluster.Mercury.Adapters.AdoNet
         #endregion IInboundHandler Members
 
         #region Event Handlers
-
-        private void pollingTimer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
-        {
-            ExecutePolling();
-        }
 
         private void ExecutePolling()
         {
