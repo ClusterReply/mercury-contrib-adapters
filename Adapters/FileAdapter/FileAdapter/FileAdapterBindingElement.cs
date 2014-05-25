@@ -63,6 +63,7 @@ namespace Reply.Cluster.Mercury.Adapters.File
 
         #region Custom Generated Properties
 
+        [System.ComponentModel.Category("Path")]
         [System.Configuration.ConfigurationProperty("pollingType", DefaultValue = PollingType.Event)]
         public PollingType PollingType
         {
@@ -77,7 +78,7 @@ namespace Reply.Cluster.Mercury.Adapters.File
         }
 
 
-
+        [System.ComponentModel.Category("Path")]
         [System.Configuration.ConfigurationProperty("pollingInterval", DefaultValue = 60)]
         public int PollingInterval
         {
@@ -92,7 +93,7 @@ namespace Reply.Cluster.Mercury.Adapters.File
         }
 
 
-
+        [System.ComponentModel.Category("Path")]
         [System.Configuration.ConfigurationProperty("ScheduleName")]
         public string ScheduleName
         {
@@ -107,7 +108,7 @@ namespace Reply.Cluster.Mercury.Adapters.File
         }
 
 
-
+        [System.ComponentModel.Category("Folders")]
         [System.Configuration.ConfigurationProperty("TempFolder")]
         public string TempFolder
         {
@@ -122,7 +123,7 @@ namespace Reply.Cluster.Mercury.Adapters.File
         }
 
 
-
+        [System.ComponentModel.Category("Folders")]
         [System.Configuration.ConfigurationProperty("RemoteBackup")]
         public string RemoteBackup
         {
@@ -137,7 +138,7 @@ namespace Reply.Cluster.Mercury.Adapters.File
         }
 
 
-
+        [System.ComponentModel.Category("Folders")]
         [System.Configuration.ConfigurationProperty("LocalBackup")]
         public string LocalBackup
         {
@@ -152,7 +153,7 @@ namespace Reply.Cluster.Mercury.Adapters.File
         }
 
 
-
+        [System.ComponentModel.Category("Overwrite")]
         [System.Configuration.ConfigurationProperty("overwriteAction", DefaultValue = "None")]
         public OverwriteAction OverwriteAction
         {
