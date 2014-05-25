@@ -89,7 +89,7 @@ namespace Reply.Cluster.Mercury.Adapters.AdoNet
         public void StartListener(string[] actions, TimeSpan timeout)
         {
             if (pollingType == PollingType.Simple)
-                pollingTimer.Change(0, pollingInterval);
+                pollingTimer.Change(0, pollingInterval * 1000);
             else
                 ScheduleHelper.RegisterEvent(scheduleName, () => ExecutePolling());
         }
