@@ -59,11 +59,21 @@ namespace Reply.Cluster.Mercury.Adapters.File
         {
             connectionUri = connection.ConnectionFactory.ConnectionUri;
 
-            watcher = new FileSystemWatcher(connectionUri.Path, connectionUri.FileName);
-            watcher.Changed += FileEvent;
+            pollingType = connection.ConnectionFactory.Adapter.PollingType;
+            
+            if (pollingType == PollingType.Event || pollingType == PollingType.Simple)
+            {
+                if (pollingType == PollingType.Event)
+                {
+                    watcher = new FileSystemWatcher(connectionUri.Path, connectionUri.FileName);
+                    watcher.Changed += FileEvent;
+                }
 
-            pollingInterval = connection.ConnectionFactory.Adapter.PollingInterval;
-            timer = new Timer(new TimerCallback(t => GetFiles()));
+                pollingInterval = connection.ConnectionFactory.Adapter.PollingInterval;
+                pollingTimer = new Timer(new TimerCallback(t => GetFiles()));
+            }
+            else
+                scheduleName = connection.ConnectionFactory.Adapter.ScheduleName;
         }
 
         #region Private Fields
@@ -71,8 +81,11 @@ namespace Reply.Cluster.Mercury.Adapters.File
         private FileAdapterConnectionUri connectionUri;
         private FileSystemWatcher watcher;
 
+        private PollingType pollingType;
+
         private int pollingInterval;
-        private Timer timer;
+        private Timer pollingTimer;
+        private string scheduleName;
 
         private BlockingCollection<FileItem> queue = new BlockingCollection<FileItem>();
         private CancellationTokenSource cancelSource = new CancellationTokenSource();
@@ -86,8 +99,15 @@ namespace Reply.Cluster.Mercury.Adapters.File
         /// </summary>
         public void StartListener(string[] actions, TimeSpan timeout)
         {
-            timer.Change(0, pollingInterval * 1000);
-            watcher.EnableRaisingEvents = true;
+            if (pollingType == PollingType.Event || pollingType == PollingType.Simple)
+            {
+                pollingTimer.Change(0, pollingInterval * 1000);
+
+                if (pollingType == PollingType.Event)
+                    watcher.EnableRaisingEvents = true;
+            }
+            else
+                ScheduleHelper.RegisterEvent(scheduleName, () => GetFiles());
         }
 
         /// <summary>
@@ -95,8 +115,15 @@ namespace Reply.Cluster.Mercury.Adapters.File
         /// </summary>
         public void StopListener(TimeSpan timeout)
         {
-            timer.Change(Timeout.Infinite, Timeout.Infinite);
-            watcher.EnableRaisingEvents = false;
+            if (pollingType == PollingType.Event || pollingType == PollingType.Simple)
+            {
+                pollingTimer.Change(Timeout.Infinite, Timeout.Infinite);
+
+                if (pollingType == PollingType.Event)
+                    watcher.EnableRaisingEvents = false;
+            }
+            else
+                ScheduleHelper.CancelEvent(scheduleName);
 
             queue.CompleteAdding();
             cancelSource.Cancel();
