@@ -9,7 +9,7 @@
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Reply.Cluster.Mercury.Adapters.File</RootNamespace>
-    <AssemblyName>Reply.Cluster.Mercury.Adapters.File.FileAdapter</AssemblyName>
+    <AssemblyName>Reply.Cluster.Mercury.Adapters.File.FtpAdapter</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileUpgradeFlags>
     </FileUpgradeFlags>
@@ -52,7 +52,7 @@
     <SignAssembly>true</SignAssembly>
   </PropertyGroup>
   <PropertyGroup>
-    <AssemblyOriginatorKeyFile>..\..\adapters.snk</AssemblyOriginatorKeyFile>
+    <AssemblyOriginatorKeyFile>adapters.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
@@ -63,18 +63,18 @@
   </Target>
   -->
   <ItemGroup>
-    <Compile Include="FileAdapter.cs" />
-    <Compile Include="FileAdapterBinding.cs" />
-    <Compile Include="FileAdapterBindingElement.cs" />
-    <Compile Include="FileAdapterBindingElementExtensionElement.cs" />
-    <Compile Include="FileAdapterConnectionFactory.cs" />
-    <Compile Include="FileAdapterConnection.cs" />
-    <Compile Include="FileAdapterHandlerBase.cs" />
-    <Compile Include="FileAdapterInboundHandler.cs" />
-    <Compile Include="FileAdapterOutboundHandler.cs" />
-    <Compile Include="FileAdapterBindingCollectionElement.cs" />
-    <Compile Include="FileAdapterTrace.cs" />
-    <Compile Include="FileAdapterConnectionUri.cs" />
+    <Compile Include="FtpAdapter.cs" />
+    <Compile Include="FtpAdapterBinding.cs" />
+    <Compile Include="FtpAdapterBindingElement.cs" />
+    <Compile Include="FtpAdapterBindingElementExtensionElement.cs" />
+    <Compile Include="FtpAdapterConnectionFactory.cs" />
+    <Compile Include="FtpAdapterConnection.cs" />
+    <Compile Include="FtpAdapterHandlerBase.cs" />
+    <Compile Include="FtpAdapterInboundHandler.cs" />
+    <Compile Include="FtpAdapterOutboundHandler.cs" />
+    <Compile Include="FtpAdapterBindingCollectionElement.cs" />
+    <Compile Include="FtpAdapterTrace.cs" />
+    <Compile Include="FtpAdapterConnectionUri.cs" />
     <Compile Include="AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -88,6 +88,9 @@
       <HintPath>..\..\..\packages\Quartz.2.2.3\lib\net40\Quartz.dll</HintPath>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.Net.FtpClient">
+      <HintPath>..\..\..\packages\System.Net.FtpClient.1.0.5200.21177\lib\net40\System.Net.FtpClient.dll</HintPath>
+    </Reference>
     <Reference Include="System.ServiceModel.Channels" />
     <Reference Include="System.Xml" />
     <Reference Include="System.ServiceModel" />
@@ -114,12 +117,10 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\..\adapters.snk">
-      <Link>adapters.snk</Link>
-    </None>
     <None Include="..\..\Apache.licenseheader">
       <Link>Apache.licenseheader</Link>
     </None>
+    <None Include="adapters.snk" />
     <None Include="job_scheduling_data_2_0.xsd">
       <SubType>Designer</SubType>
     </None>

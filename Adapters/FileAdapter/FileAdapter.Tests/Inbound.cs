@@ -181,14 +181,15 @@ namespace Reply.Cluster.Mercury.Adapters.File.Tests
             IInboundReply reply;
 
             Assert.IsTrue(inputHandler.TryReceive(TimeSpan.FromMinutes(1), out message, out reply));
-            reply.Reply(message, TimeSpan.FromMinutes(1));
-
+            
             Assert.AreEqual(new Uri(inputFile), new Uri(message.Headers.Action));
 
-            byte[] body = message.GetBody<byte[]>();
+            Stream body = message.GetBody<Stream>();
 
-            using (var reader = new StreamReader(new MemoryStream(body)))
+            using (var reader = new StreamReader(body))
                 Assert.AreEqual(expectedContent, reader.ReadToEnd());
+
+            reply.Reply(message, TimeSpan.FromMinutes(1));
 
             Assert.IsFalse(System.IO.File.Exists(inputFile));
         }

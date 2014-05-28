@@ -17,7 +17,7 @@ limitations under the License.
 #endregion
 
 /// -----------------------------------------------------------------------------------------------------------
-/// Module      :  FileAdapterBindingElementExtensionElement.cs
+/// Module      :  FtpAdapterBindingElementExtensionElement.cs
 /// Description :  This class is provided to surface Adapter as a binding element, so that it 
 ///                can be used within a user-defined WCF "Custom Binding".
 ///                In configuration file, it is defined under
@@ -43,7 +43,7 @@ using System.Globalization;
 using Microsoft.ServiceModel.Channels.Common;
 #endregion
 
-namespace Reply.Cluster.Mercury.Adapters.File
+namespace Reply.Cluster.Mercury.Adapters.Ftp
 {
     using System;
     using System.Configuration;
@@ -51,7 +51,7 @@ namespace Reply.Cluster.Mercury.Adapters.File
     using System.ServiceModel.Channels;
     using System.ServiceModel.Configuration;
 
-    public class FileAdapterBindingElementExtensionElement : BindingElementExtensionElement
+    public class FtpAdapterBindingElementExtensionElement : BindingElementExtensionElement
     {
 
         #region  Constructor
@@ -59,7 +59,7 @@ namespace Reply.Cluster.Mercury.Adapters.File
         /// <summary>
         /// Default constructor
         /// </summary>
-        public FileAdapterBindingElementExtensionElement()
+        public FtpAdapterBindingElementExtensionElement()
         {
         }
 
@@ -67,8 +67,8 @@ namespace Reply.Cluster.Mercury.Adapters.File
 
         #region Custom Generated Properties
 
-        [System.ComponentModel.Category("Path")]
-        [System.Configuration.ConfigurationProperty("pollingType", DefaultValue = PollingType.Event)]
+        [System.ComponentModel.Category("Polling")]
+        [System.Configuration.ConfigurationProperty("pollingType", DefaultValue = PollingType.Simple)]
         public PollingType PollingType
         {
             get
@@ -82,7 +82,7 @@ namespace Reply.Cluster.Mercury.Adapters.File
         }
 
 
-        [System.ComponentModel.Category("Path")]
+        [System.ComponentModel.Category("Polling")]
         [System.Configuration.ConfigurationProperty("pollingInterval", DefaultValue = 60)]
         public int PollingInterval
         {
@@ -97,7 +97,7 @@ namespace Reply.Cluster.Mercury.Adapters.File
         }
 
 
-        [System.ComponentModel.Category("Path")]
+        [System.ComponentModel.Category("Polling")]
         [System.Configuration.ConfigurationProperty("ScheduleName")]
         public string ScheduleName
         {
@@ -171,6 +171,21 @@ namespace Reply.Cluster.Mercury.Adapters.File
             }
         }
 
+
+        [System.ComponentModel.Category("Compression")]
+        [System.Configuration.ConfigurationProperty("zipFile", DefaultValue = false)]
+        public bool ZipFile
+        {
+            get
+            {
+                return ((bool)(base["ZipFile"]));
+            }
+            set
+            {
+                base["ZipFile"] = value;
+            }
+        }
+
         #endregion Custom Generated Properties
 
         #region BindingElementExtensionElement Methods
@@ -181,7 +196,7 @@ namespace Reply.Cluster.Mercury.Adapters.File
         {
             get
             {
-                return typeof(FileAdapter);
+                return typeof(FtpAdapter);
             }
         }
         /// <summary>
@@ -192,13 +207,14 @@ namespace Reply.Cluster.Mercury.Adapters.File
             get
             {
                 ConfigurationPropertyCollection configProperties = base.Properties;
-                configProperties.Add(new ConfigurationProperty("PollingType", typeof(PollingType), PollingType.Event, null, null, ConfigurationPropertyOptions.None));
+                configProperties.Add(new ConfigurationProperty("PollingType", typeof(PollingType), PollingType.Simple, null, null, ConfigurationPropertyOptions.None));
                 configProperties.Add(new ConfigurationProperty("PollingInterval", typeof(System.Int32), (System.Int32)60, null, null, ConfigurationPropertyOptions.None));
                 configProperties.Add(new ConfigurationProperty("ScheduleName", typeof(System.String), null, null, null, ConfigurationPropertyOptions.None));
                 configProperties.Add(new ConfigurationProperty("TempFolder", typeof(System.String), null, null, null, ConfigurationPropertyOptions.None));
                 configProperties.Add(new ConfigurationProperty("RemoteBackup", typeof(System.String), null, null, null, ConfigurationPropertyOptions.None));
                 configProperties.Add(new ConfigurationProperty("LocalBackup", typeof(System.String), null, null, null, ConfigurationPropertyOptions.None));
                 configProperties.Add(new ConfigurationProperty("OverwriteAction", typeof(OverwriteAction), OverwriteAction.None, null, null, ConfigurationPropertyOptions.None));
+                configProperties.Add(new ConfigurationProperty("ZipFile", typeof(System.Boolean), false, null, null, ConfigurationPropertyOptions.None));
                 return configProperties;
             }
         }
@@ -209,7 +225,7 @@ namespace Reply.Cluster.Mercury.Adapters.File
         /// <returns></returns>
         protected override BindingElement CreateBindingElement()
         {
-            FileAdapter adapter = new FileAdapter();
+            FtpAdapter adapter = new FtpAdapter();
             this.ApplyConfiguration(adapter);
             return adapter;
         }
@@ -221,7 +237,7 @@ namespace Reply.Cluster.Mercury.Adapters.File
         public override void ApplyConfiguration(BindingElement bindingElement)
         {
             base.ApplyConfiguration(bindingElement);
-            FileAdapter adapterBinding = ((FileAdapter)(bindingElement));
+            FtpAdapter adapterBinding = ((FtpAdapter)(bindingElement));
             adapterBinding.PollingType = (PollingType)this["PollingType"];
             adapterBinding.PollingInterval = (System.Int32)this["PollingInterval"];
             adapterBinding.ScheduleName = (System.String)this["ScheduleName"];
@@ -229,6 +245,7 @@ namespace Reply.Cluster.Mercury.Adapters.File
             adapterBinding.RemoteBackup = (System.String)this["RemoteBackup"];
             adapterBinding.LocalBackup = (System.String)this["LocalBackup"];
             adapterBinding.OverwriteAction = (OverwriteAction)this["OverwriteAction"];
+            adapterBinding.ZipFile = (System.Boolean)this["ZipFile"];
         }
 
         /// <summary>
@@ -238,7 +255,7 @@ namespace Reply.Cluster.Mercury.Adapters.File
         protected override void InitializeFrom(BindingElement bindingElement)
         {
             base.InitializeFrom(bindingElement);
-            FileAdapter adapterBinding = ((FileAdapter)(bindingElement));
+            FtpAdapter adapterBinding = ((FtpAdapter)(bindingElement));
             this["PollingType"] = adapterBinding.PollingType;
             this["PollingInterval"] = adapterBinding.PollingInterval;
             this["ScheduleName"] = adapterBinding.ScheduleName;
@@ -246,6 +263,7 @@ namespace Reply.Cluster.Mercury.Adapters.File
             this["RemoteBackup"] = adapterBinding.RemoteBackup;
             this["LocalBackup"] = adapterBinding.LocalBackup;
             this["OverwriteAction"] = adapterBinding.OverwriteAction;
+            this["ZipFile"] = adapterBinding.ZipFile;
         }
 
         /// <summary>
@@ -255,7 +273,7 @@ namespace Reply.Cluster.Mercury.Adapters.File
         public override void CopyFrom(ServiceModelExtensionElement from)
         {
             base.CopyFrom(from);
-            FileAdapterBindingElementExtensionElement adapterBinding = ((FileAdapterBindingElementExtensionElement)(from));
+            FtpAdapterBindingElementExtensionElement adapterBinding = ((FtpAdapterBindingElementExtensionElement)(from));
             this["PollingType"] = adapterBinding.PollingType;
             this["PollingInterval"] = adapterBinding.PollingInterval;
             this["ScheduleName"] = adapterBinding.ScheduleName;
@@ -263,6 +281,7 @@ namespace Reply.Cluster.Mercury.Adapters.File
             this["RemoteBackup"] = adapterBinding.RemoteBackup;
             this["LocalBackup"] = adapterBinding.LocalBackup;
             this["OverwriteAction"] = adapterBinding.OverwriteAction;
+            this["ZipFile"] = adapterBinding.ZipFile;
         }
 
         #endregion BindingElementExtensionElement Methods

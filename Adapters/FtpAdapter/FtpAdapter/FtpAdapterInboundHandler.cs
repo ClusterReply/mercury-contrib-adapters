@@ -17,7 +17,7 @@ limitations under the License.
 #endregion
 
 /// -----------------------------------------------------------------------------------------------------------
-/// Module      :  FileAdapterInboundHandler.cs
+/// Module      :  FtpAdapterInboundHandler.cs
 /// Description :  This class implements an interface for listening or polling for data.
 /// -----------------------------------------------------------------------------------------------------------
 /// 
@@ -27,48 +27,47 @@ using System.Collections.Generic;
 using System.Text;
 
 using Microsoft.ServiceModel.Channels.Common;
-using System.Collections.Concurrent;
 using System.Threading;
+using System.Collections.Concurrent;
 using System.IO;
-using System.ServiceModel.Channels;
+using System.Net.FtpClient;
+using System.Net;
 using Reply.Cluster.Mercury.Adapters.Helpers;
+using System.ServiceModel.Channels;
 #endregion
 
-namespace Reply.Cluster.Mercury.Adapters.File
+namespace Reply.Cluster.Mercury.Adapters.Ftp
 {
-    public class FileAdapterInboundHandler : FileAdapterHandlerBase, IInboundHandler
+    public class FtpAdapterInboundHandler : FtpAdapterHandlerBase, IInboundHandler
     {
         private class FileItem
         {
-            public FileItem(string path, FileStream stream)
+            public FileItem(FtpClient client, string path, Stream stream)
             {
+                Client = client;
                 Path = path;
                 Stream = stream;
             }
 
+            public FtpClient Client { get; private set; }
             public string Path { get; private set; }
-            public FileStream Stream { get; private set; }
+            public Stream Stream { get; private set; }
         }
 
         /// <summary>
-        /// Initializes a new instance of the FileAdapterInboundHandler class
+        /// Initializes a new instance of the FtpAdapterInboundHandler class
         /// </summary>
-        public FileAdapterInboundHandler(FileAdapterConnection connection
+        public FtpAdapterInboundHandler(FtpAdapterConnection connection
             , MetadataLookup metadataLookup)
             : base(connection, metadataLookup)
         {
             connectionUri = connection.ConnectionFactory.ConnectionUri;
+            filter = new Wildcard(connectionUri.FileName);
 
             pollingType = connection.ConnectionFactory.Adapter.PollingType;
-            
-            if (pollingType == PollingType.Event || pollingType == PollingType.Simple)
-            {
-                if (pollingType == PollingType.Event)
-                {
-                    watcher = new FileSystemWatcher(connectionUri.Path, connectionUri.FileName);
-                    watcher.Changed += FileEvent;
-                }
 
+            if (pollingType == PollingType.Simple)
+            {
                 pollingInterval = connection.ConnectionFactory.Adapter.PollingInterval;
                 pollingTimer = new Timer(new TimerCallback(t => GetFiles()));
             }
@@ -78,8 +77,8 @@ namespace Reply.Cluster.Mercury.Adapters.File
 
         #region Private Fields
 
-        private FileAdapterConnectionUri connectionUri;
-        private FileSystemWatcher watcher;
+        private FtpAdapterConnectionUri connectionUri;
+        private Wildcard filter;
 
         private PollingType pollingType;
 
@@ -99,13 +98,8 @@ namespace Reply.Cluster.Mercury.Adapters.File
         /// </summary>
         public void StartListener(string[] actions, TimeSpan timeout)
         {
-            if (pollingType == PollingType.Event || pollingType == PollingType.Simple)
-            {
+            if (pollingType == PollingType.Simple)
                 pollingTimer.Change(0, pollingInterval * 1000);
-
-                if (pollingType == PollingType.Event)
-                    watcher.EnableRaisingEvents = true;
-            }
             else
                 ScheduleHelper.RegisterEvent(scheduleName, () => GetFiles());
         }
@@ -115,16 +109,11 @@ namespace Reply.Cluster.Mercury.Adapters.File
         /// </summary>
         public void StopListener(TimeSpan timeout)
         {
-            if (pollingType == PollingType.Event || pollingType == PollingType.Simple)
-            {
+            if (pollingType == PollingType.Simple)
                 pollingTimer.Change(Timeout.Infinite, Timeout.Infinite);
-
-                if (pollingType == PollingType.Event)
-                    watcher.EnableRaisingEvents = false;
-            }
             else
                 ScheduleHelper.CancelEvent(scheduleName);
-
+                        
             queue.CompleteAdding();
             cancelSource.Cancel();
         }
@@ -148,7 +137,7 @@ namespace Reply.Cluster.Mercury.Adapters.File
                 message = ByteStreamMessage.CreateMessage(item.Stream);
                 message.Headers.Action = new UriBuilder(item.Path).Uri.ToString();
 
-                reply = new FileAdapterInboundReply(item.Path, item.Stream);
+                reply = new FtpAdapterInboundReply(item.Client, item.Path, item.Stream);
             }
 
             return result;
@@ -164,56 +153,40 @@ namespace Reply.Cluster.Mercury.Adapters.File
 
         #endregion IInboundHandler Members
 
-        #region IDisposable Members
-
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing)
-                watcher.Dispose();
-
-            base.Dispose(disposing);
-        }
-
-        #endregion
-
         #region Private Members
 
         private void GetFiles()
         {
-            var files = Directory.GetFiles(connectionUri.Path, connectionUri.FileName);
+            var client = Connection.Client;
 
-            foreach (string file in files)
-                AddFileToQueue(file);
-        }
+            var files = client.GetListing(connectionUri.Path);
 
-        private void FileEvent(object sender, FileSystemEventArgs e)
-        {
-            AddFileToQueue(e.FullPath);
-        }
-
-        private void AddFileToQueue(string path)
-        {
-            try
-            {
-                if (System.IO.File.Exists(path))
+            foreach (var file in files)
+                if (filter.IsMatch(file.Name))
                 {
-                    var stream = System.IO.File.Open(path, FileMode.Open, FileAccess.Read, FileShare.Delete);
+                    string path = file.FullName;
 
-                    queue.Add(new FileItem(path, stream));
+                    try
+                    {
+                        var stream = client.OpenRead(path);
+
+                        queue.Add(new FileItem(client, path, stream));
+                    }
+                    catch (FtpException) { }
                 }
-            }
-            catch (IOException) { }     
         }
 
         #endregion
     }
-    internal class FileAdapterInboundReply : InboundReply
+    internal class FtpAdapterInboundReply : InboundReply
     {
-        private FileStream stream;
+        private FtpClient client;
+        private Stream stream;
         private string path;
 
-        public FileAdapterInboundReply(string path, FileStream stream)
+        public FtpAdapterInboundReply(FtpClient client, string path, Stream stream)
         {
+            this.client = client;
             this.path = path;
             this.stream = stream;
         }
@@ -234,11 +207,10 @@ namespace Reply.Cluster.Mercury.Adapters.File
         public override void Reply(System.ServiceModel.Channels.Message message
             , TimeSpan timeout)
         {
-            System.IO.File.Delete(path);
+            client.DeleteFile(path);
             stream.Close();
         }
-
-
+        
         #endregion InboundReply Members
     }
 

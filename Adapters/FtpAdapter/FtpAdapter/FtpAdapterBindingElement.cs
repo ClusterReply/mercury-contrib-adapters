@@ -17,7 +17,7 @@ limitations under the License.
 #endregion
 
 /// -----------------------------------------------------------------------------------------------------------
-/// Module      :  FileAdapterBindingElement.cs
+/// Module      :  FtpAdapterBindingElement.cs
 /// Description :  Provides a base class for the configuration elements.
 /// -----------------------------------------------------------------------------------------------------------
 
@@ -34,27 +34,27 @@ using System.Globalization;
 using Microsoft.ServiceModel.Channels.Common;
 #endregion
 
-namespace Reply.Cluster.Mercury.Adapters.File
+namespace Reply.Cluster.Mercury.Adapters.Ftp
 {
-    public class FileAdapterBindingElement : StandardBindingElement
+    public class FtpAdapterBindingElement : StandardBindingElement
     {
         private ConfigurationPropertyCollection properties;
 
         #region Constructors
 
         /// <summary>
-        /// Initializes a new instance of the FileAdapterBindingElement class
+        /// Initializes a new instance of the FtpAdapterBindingElement class
         /// </summary>
-        public FileAdapterBindingElement()
+        public FtpAdapterBindingElement()
             : base(null)
         {
         }
 
 
         /// <summary>
-        /// Initializes a new instance of the FileAdapterBindingElement class with a configuration name
+        /// Initializes a new instance of the FtpAdapterBindingElement class with a configuration name
         /// </summary>
-        public FileAdapterBindingElement(string configurationName)
+        public FtpAdapterBindingElement(string configurationName)
             : base(configurationName)
         {
         }
@@ -63,8 +63,8 @@ namespace Reply.Cluster.Mercury.Adapters.File
 
         #region Custom Generated Properties
 
-        [System.ComponentModel.Category("Path")]
-        [System.Configuration.ConfigurationProperty("pollingType", DefaultValue = PollingType.Event)]
+        [System.ComponentModel.Category("Polling")]
+        [System.Configuration.ConfigurationProperty("pollingType", DefaultValue = PollingType.Simple)]
         public PollingType PollingType
         {
             get
@@ -78,7 +78,7 @@ namespace Reply.Cluster.Mercury.Adapters.File
         }
 
 
-        [System.ComponentModel.Category("Path")]
+        [System.ComponentModel.Category("Polling")]
         [System.Configuration.ConfigurationProperty("pollingInterval", DefaultValue = 60)]
         public int PollingInterval
         {
@@ -93,7 +93,7 @@ namespace Reply.Cluster.Mercury.Adapters.File
         }
 
 
-        [System.ComponentModel.Category("Path")]
+        [System.ComponentModel.Category("Polling")]
         [System.Configuration.ConfigurationProperty("ScheduleName")]
         public string ScheduleName
         {
@@ -154,7 +154,7 @@ namespace Reply.Cluster.Mercury.Adapters.File
 
 
         [System.ComponentModel.Category("Overwrite")]
-        [System.Configuration.ConfigurationProperty("overwriteAction", DefaultValue = "None")]
+        [System.Configuration.ConfigurationProperty("overwriteAction", DefaultValue = OverwriteAction.None)]
         public OverwriteAction OverwriteAction
         {
             get
@@ -164,6 +164,21 @@ namespace Reply.Cluster.Mercury.Adapters.File
             set
             {
                 base["OverwriteAction"] = value;
+            }
+        }
+
+
+        [System.ComponentModel.Category("Compression")]
+        [System.Configuration.ConfigurationProperty("zipFile", DefaultValue = false)]
+        public bool ZipFile
+        {
+            get
+            {
+                return ((bool)(base["ZipFile"]));
+            }
+            set
+            {
+                base["ZipFile"] = value;
             }
         }
 
@@ -178,7 +193,7 @@ namespace Reply.Cluster.Mercury.Adapters.File
         {
             get
             {
-                return typeof(FileAdapterBinding);
+                return typeof(FtpAdapterBinding);
             }
         }
 
@@ -192,7 +207,7 @@ namespace Reply.Cluster.Mercury.Adapters.File
         protected override void InitializeFrom(Binding binding)
         {
             base.InitializeFrom(binding);
-            FileAdapterBinding adapterBinding = (FileAdapterBinding)binding;
+            FtpAdapterBinding adapterBinding = (FtpAdapterBinding)binding;
             this["PollingType"] = adapterBinding.PollingType;
             this["PollingInterval"] = adapterBinding.PollingInterval;
             this["ScheduleName"] = adapterBinding.ScheduleName;
@@ -200,6 +215,7 @@ namespace Reply.Cluster.Mercury.Adapters.File
             this["RemoteBackup"] = adapterBinding.RemoteBackup;
             this["LocalBackup"] = adapterBinding.LocalBackup;
             this["OverwriteAction"] = adapterBinding.OverwriteAction;
+            this["ZipFile"] = adapterBinding.ZipFile;
         }
 
         /// <summary>
@@ -210,7 +226,7 @@ namespace Reply.Cluster.Mercury.Adapters.File
             if (binding == null)
                 throw new ArgumentNullException("binding");
 
-            FileAdapterBinding adapterBinding = (FileAdapterBinding)binding;
+            FtpAdapterBinding adapterBinding = (FtpAdapterBinding)binding;
             adapterBinding.PollingType = (PollingType)this["PollingType"];
             adapterBinding.PollingInterval = (System.Int32)this["PollingInterval"];
             adapterBinding.ScheduleName = (System.String)this["ScheduleName"];
@@ -218,6 +234,7 @@ namespace Reply.Cluster.Mercury.Adapters.File
             adapterBinding.RemoteBackup = (System.String)this["RemoteBackup"];
             adapterBinding.LocalBackup = (System.String)this["LocalBackup"];
             adapterBinding.OverwriteAction = (OverwriteAction)this["OverwriteAction"];
+            adapterBinding.ZipFile = (System.Boolean)this["ZipFile"];
         }
 
         /// <summary>
@@ -230,13 +247,14 @@ namespace Reply.Cluster.Mercury.Adapters.File
                 if (this.properties == null)
                 {
                     ConfigurationPropertyCollection configProperties = base.Properties;
-                    configProperties.Add(new ConfigurationProperty("PollingType", typeof(PollingType), PollingType.Event, null, null, ConfigurationPropertyOptions.None));
+                    configProperties.Add(new ConfigurationProperty("PollingType", typeof(PollingType), PollingType.Simple, null, null, ConfigurationPropertyOptions.None));
                     configProperties.Add(new ConfigurationProperty("PollingInterval", typeof(System.Int32), (System.Int32)60, null, null, ConfigurationPropertyOptions.None));
                     configProperties.Add(new ConfigurationProperty("ScheduleName", typeof(System.String), null, null, null, ConfigurationPropertyOptions.None));
                     configProperties.Add(new ConfigurationProperty("TempFolder", typeof(System.String), null, null, null, ConfigurationPropertyOptions.None));
                     configProperties.Add(new ConfigurationProperty("RemoteBackup", typeof(System.String), null, null, null, ConfigurationPropertyOptions.None));
                     configProperties.Add(new ConfigurationProperty("LocalBackup", typeof(System.String), null, null, null, ConfigurationPropertyOptions.None));
                     configProperties.Add(new ConfigurationProperty("OverwriteAction", typeof(OverwriteAction), OverwriteAction.None, null, null, ConfigurationPropertyOptions.None));
+                    configProperties.Add(new ConfigurationProperty("ZipFile", typeof(System.Boolean), false, null, null, ConfigurationPropertyOptions.None));
                     this.properties = configProperties;
                 }
                 return this.properties;

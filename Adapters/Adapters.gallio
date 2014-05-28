@@ -4,14 +4,15 @@
     <files>
       <file>AdoNetAdapter\AdoNetAdapter.Tests\bin\Debug\Reply.Cluster.Mercury.Adapters.AdoNet.AdoNetAdapter.Tests.dll</file>
       <file>FileAdapter\FileAdapter.Tests\bin\Debug\Reply.Cluster.Mercury.Adapters.File.FileAdapter.Tests.dll</file>
+      <file>FtpAdapter\FtpAdapter.Tests\bin\Debug\Reply.Cluster.Mercury.Adapters.Ftp.FtpAdapter.Tests.dll</file>
     </files>
     <hintDirectories />
     <excludedFrameworkIds />
     <properties />
   </testPackage>
   <testFilters>
-    <testFilter filterName="AutoSave" filterExpr="Id: 27a0cb49f9556121" />
-    <testFilter filterName="LastRun" filterExpr="Id: 27a0cb49f9556121" />
+    <testFilter filterName="AutoSave" filterExpr="(Id: 27a0cb49f9556121 or Id: da89cf7ff5d09d6f)" />
+    <testFilter filterName="LastRun" filterExpr="(Id: 27a0cb49f9556121 or Id: da89cf7ff5d09d6f)" />
   </testFilters>
   <extensionSpecifications />
   <reportDirectory>C:\Users\Administrator\AppData\Roaming\Gallio\Icarus\Reports</reportDirectory>

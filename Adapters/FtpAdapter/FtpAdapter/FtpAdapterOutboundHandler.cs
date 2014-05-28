@@ -17,7 +17,7 @@ limitations under the License.
 #endregion
 
 /// -----------------------------------------------------------------------------------------------------------
-/// Module      :  FileAdapterOutboundHandler.cs
+/// Module      :  FtpAdapterOutboundHandler.cs
 /// Description :  This class is used for sending data to the target system
 /// -----------------------------------------------------------------------------------------------------------
 
@@ -28,19 +28,20 @@ using System.Text;
 using System.ServiceModel.Channels;
 
 using Microsoft.ServiceModel.Channels.Common;
-using System.IO;
 using Reply.Cluster.Mercury.Adapters.Helpers;
-using System.Xml;
+using System.IO;
+using System.Net.FtpClient;
+using System.Net;
 #endregion
 
-namespace Reply.Cluster.Mercury.Adapters.File
+namespace Reply.Cluster.Mercury.Adapters.Ftp
 {
-    public class FileAdapterOutboundHandler : FileAdapterHandlerBase, IOutboundHandler
+    public class FtpAdapterOutboundHandler : FtpAdapterHandlerBase, IOutboundHandler
     {
         /// <summary>
-        /// Initializes a new instance of the FileAdapterOutboundHandler class
+        /// Initializes a new instance of the FtpAdapterOutboundHandler class
         /// </summary>
-        public FileAdapterOutboundHandler(FileAdapterConnection connection
+        public FtpAdapterOutboundHandler(FtpAdapterConnection connection
             , MetadataLookup metadataLookup)
             : base(connection, metadataLookup)
         {
@@ -54,32 +55,37 @@ namespace Reply.Cluster.Mercury.Adapters.File
         /// </summary>
         public Message Execute(Message message, TimeSpan timeout)
         {
-            var generator = new NameGenerator(message, 
+            var generator = new NameGenerator(message,
                 Connection.ConnectionFactory.ConnectionUri.Path, Connection.ConnectionFactory.ConnectionUri.FileName);
 
             string sourcePath = new Uri(message.Headers.Action).LocalPath;
 
             string targetFolder = generator.Folder;
-            string targetPath = Path.Combine(targetFolder, generator.FileName);
+            string targetPath = Path.Combine(targetFolder, generator.FileName).Replace('\\', '/').Trim('/');
 
-            if (!Directory.Exists(targetFolder))
-                Directory.CreateDirectory(targetFolder);
+            var client = Connection.Client;
+
+            if (!client.DirectoryExists(targetFolder))
+                client.CreateDirectory(targetFolder);
 
             Stream outputStream = null;
-            
+
             switch (Connection.ConnectionFactory.Adapter.OverwriteAction)
             {
                 case OverwriteAction.None:
-                    outputStream = System.IO.File.Open(targetPath, FileMode.CreateNew);
+                    if (client.FileExists(targetPath))
+                        throw new FtpException(string.Format("The file '{0}' already exists.", targetPath));
+
+                    outputStream = client.OpenWrite(targetPath);
                     break;
                 case OverwriteAction.Replace:
-                    outputStream = System.IO.File.Create(targetPath);
+                    outputStream = client.OpenWrite(targetPath);
                     break;
                 case OverwriteAction.Append:
-                    outputStream = System.IO.File.OpenWrite(targetPath);
+                    outputStream = client.OpenAppend(targetPath);
                     break;
             }
-            
+
             using (outputStream)
             {
                 var inputStream = message.GetBody<Stream>();

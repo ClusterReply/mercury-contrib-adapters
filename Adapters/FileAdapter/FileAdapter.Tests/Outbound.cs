@@ -41,15 +41,17 @@ namespace Reply.Cluster.Mercury.Adapters.File.Tests
             streamWriter.Write(fileContent);
             streamWriter.Flush();
 
+            stream.Seek(0, SeekOrigin.Begin);
+
             return stream;
         }
 
         private static Message CreateMessage(string path, MemoryStream body)
         {
-            using (body)
-            {
-                return Message.CreateMessage(MessageVersion.Default, new Uri(path).ToString(), body.ToArray());
-            }
+            var message = ByteStreamMessage.CreateMessage(body);
+            message.Headers.Action = new Uri(path).ToString();
+            
+            return message;
         }
 
         [SetUp]
