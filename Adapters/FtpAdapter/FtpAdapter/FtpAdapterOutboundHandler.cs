@@ -61,7 +61,10 @@ namespace Reply.Cluster.Mercury.Adapters.Ftp
             string sourcePath = new Uri(message.Headers.Action).LocalPath;
 
             string targetFolder = generator.Folder;
-            string targetPath = Path.Combine(targetFolder, generator.FileName).Replace('\\', '/').Trim('/');
+            string targetPath = Path.Combine(targetFolder, generator.FileName).Replace('\\', '/');
+
+            if (!targetPath.StartsWith("/"))
+                targetPath = string.Concat("/", targetPath);
 
             var client = Connection.Client;
 

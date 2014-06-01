@@ -169,8 +169,8 @@ namespace Reply.Cluster.Mercury.Adapters.Ftp
                 Protocol = (ProtocolType)Enum.Parse(typeof(ProtocolType), value.Scheme.ToUpper());
                 HostName = value.Host;
                 Port = value.Port;
-                Path = System.IO.Path.GetDirectoryName(value.AbsolutePath).Replace('\\', '/').Trim('/');
-                FileName = System.IO.Path.GetFileName(value.AbsolutePath);
+                Path = System.IO.Path.GetDirectoryName(value.AbsolutePath).Replace('\\', '/').Replace("%25", "%").TrimEnd('/');
+                FileName = System.IO.Path.GetFileName(value.AbsolutePath).Replace("%25", "%");
             }
         }
 

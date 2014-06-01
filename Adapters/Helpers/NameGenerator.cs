@@ -51,7 +51,7 @@ namespace Reply.Cluster.Mercury.Adapters.Helpers
 
     public class NameGenerator
     {
-        Regex rx = new Regex(".*?%(?<parameter>.*?)%.*");
+        Regex rx = new Regex("%(?<parameter>.*?)%");
             
         protected static string GetTZD(DateTime time)
         {
@@ -219,9 +219,9 @@ namespace Reply.Cluster.Mercury.Adapters.Helpers
         {
             string currentName = nameToExpand;
 
-            while (rx.IsMatch(currentName))
+            foreach (Match match in rx.Matches(currentName))
             {
-                string parameter = rx.Match(currentName).Groups["parameter"].Value;
+                string parameter = match.Groups["parameter"].Value;
                 Macros macro;
 
                 if (Enum.TryParse(parameter.ToUpper(), out macro))

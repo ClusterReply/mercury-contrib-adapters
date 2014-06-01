@@ -42,7 +42,7 @@ namespace Reply.Cluster.Mercury.Adapters.Ftp.Tests
             uri.Protocol = ProtocolType.FTP;
             uri.Port = 2021;
             uri.HostName = "server.domain.com";
-            uri.Path = "remote/folder";
+            uri.Path = "/remote/folder";
             uri.FileName = "*.txt";
 
             Assert.AreEqual(
@@ -59,7 +59,7 @@ namespace Reply.Cluster.Mercury.Adapters.Ftp.Tests
             Assert.AreEqual(ProtocolType.FTP, uri.Protocol);
             Assert.AreEqual(2021, uri.Port);
             Assert.AreEqual("server.domain.com", uri.HostName, StringComparison.InvariantCultureIgnoreCase);
-            Assert.AreEqual("remote/folder", uri.Path, StringComparison.InvariantCultureIgnoreCase);
+            Assert.AreEqual("/remote/folder", uri.Path, StringComparison.InvariantCultureIgnoreCase);
             Assert.AreEqual("*.txt", uri.FileName, StringComparison.InvariantCultureIgnoreCase);
         }
 
@@ -70,7 +70,7 @@ namespace Reply.Cluster.Mercury.Adapters.Ftp.Tests
 
             uri.Protocol = ProtocolType.FTP;
             uri.HostName = "server.domain.com";
-            uri.Path = "remote/folder";
+            uri.Path = "/remote/folder";
             uri.FileName = "*.txt";
 
             Assert.AreEqual(
@@ -87,7 +87,7 @@ namespace Reply.Cluster.Mercury.Adapters.Ftp.Tests
             Assert.AreEqual(ProtocolType.FTP, uri.Protocol);
             Assert.AreEqual(21, uri.Port);
             Assert.AreEqual("server.domain.com", uri.HostName, StringComparison.InvariantCultureIgnoreCase);
-            Assert.AreEqual("remote/folder", uri.Path, StringComparison.InvariantCultureIgnoreCase);
+            Assert.AreEqual("/remote/folder", uri.Path, StringComparison.InvariantCultureIgnoreCase);
             Assert.AreEqual("*.txt", uri.FileName, StringComparison.InvariantCultureIgnoreCase);
         }
     }
