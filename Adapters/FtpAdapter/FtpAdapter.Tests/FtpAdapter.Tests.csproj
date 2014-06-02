@@ -58,6 +58,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="FTP_CustomPort_UserName_Inbound.cs" />
+    <Compile Include="FTP_CustomPort_UserName_Outbound.cs" />
+    <Compile Include="FTP_DefaultPort_UserName_Outbound.cs" />
+    <Compile Include="FTP_DefaultPort_UserName_Inbound.cs" />
     <Compile Include="FTP_DefaultPort_Anonymous_Outbound.cs" />
     <Compile Include="FTP_DefaultPort_Anonymous_Inbound.cs" />
     <Compile Include="Inbound.cs" />
@@ -72,6 +76,10 @@
     <Compile Include="Uris.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\Behaviors\Behaviors.csproj">
+      <Project>{0922c91a-d322-4fe0-9ff7-abe0ba8d7803}</Project>
+      <Name>Behaviors</Name>
+    </ProjectReference>
     <ProjectReference Include="..\FtpAdapter\FtpAdapter.csproj">
       <Project>{f49a28d2-7b38-40dd-8d25-074edd763886}</Project>
       <Name>FtpAdapter</Name>

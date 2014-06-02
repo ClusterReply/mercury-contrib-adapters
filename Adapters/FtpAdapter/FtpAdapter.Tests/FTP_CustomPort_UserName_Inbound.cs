@@ -33,26 +33,31 @@ using System.Threading.Tasks;
 namespace Reply.Cluster.Mercury.Adapters.Ftp.Tests
 {
     [TestFixture]
-    public class FTP_DefaultPort_Anonymous_Inbound : Inbound
+    public class FTP_CustomPort_UserName_Inbound : Inbound
     {
         protected override string GetFtpServerParameters()
         {
-            return "ftpserv -rw";
+            return "ftpserv -rw -user=user -pw=pass -port=2021";
         }
 
         protected override FtpAdapterConnectionUri GetFtpAdapterConnectionUri(string inputFolder, string filter)
         {
-            return new FtpAdapterConnectionUri { HostName = "127.0.0.1", Path = inputFolder, FileName = filter };
+            return new FtpAdapterConnectionUri { HostName = "127.0.0.1", Port = 2021, Path = inputFolder, FileName = filter };
         }
 
         protected override string GetExpectedAction(string directory, string fileName)
         {
-            return string.Format("ftp://127.0.0.1/{0}/{1}", directory, fileName);
+            return string.Format("ftp://127.0.0.1:2021/{0}/{1}", directory, fileName);
         }
 
         protected override AdapterClientCredentials GetCredentials()
         {
-            return new AdapterClientCredentials();
+            var credentials = new AdapterClientCredentials();
+
+            credentials.UserName.UserName = "user";
+            credentials.UserName.Password = "pass";
+
+            return credentials;
         }
     }
 }

@@ -43,6 +43,7 @@ namespace Reply.Cluster.Mercury.Adapters.Ftp.Tests
         protected abstract string GetFtpServerParameters();
         protected abstract FtpAdapterConnectionUri GetFtpAdapterConnectionUri(string outputFolder, string destinationFile);
         protected abstract ClientCredentials GetCredentials();
+        protected abstract void SetCredentials(ClientCredentials clientCredentials);
 
         private static string AssemblyDirectory
         {
@@ -317,6 +318,8 @@ namespace Reply.Cluster.Mercury.Adapters.Ftp.Tests
         {
             var factory = new ChannelFactory<IService>(new FtpAdapterBinding { OverwriteAction = overwriteAction },
                 new EndpointAddress(GetFtpAdapterConnectionUri(destinationFolder, destinationFile).Uri.ToString()));
+            SetCredentials(factory.Credentials);
+
             var channel = factory.CreateChannel();
 
             try

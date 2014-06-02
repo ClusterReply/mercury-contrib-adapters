@@ -48,5 +48,7 @@ namespace Reply.Cluster.Mercury.Adapters.Ftp.Tests
         {
             return new ClientCredentials();
         }
+
+        protected override void SetCredentials(ClientCredentials clientCredentials) { }
     }
 }

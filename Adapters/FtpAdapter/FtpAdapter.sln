@@ -11,6 +11,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Adapters", "Adapters", "{FB
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Helpers", "..\Helpers\Helpers.csproj", "{6B46A1EC-FD51-4F40-B325-7401DEB3F37B}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Behaviors", "..\Behaviors\Behaviors.csproj", "{0922C91A-D322-4FE0-9FF7-ABE0BA8D7803}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -29,11 +31,16 @@ Global
 		{6B46A1EC-FD51-4F40-B325-7401DEB3F37B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6B46A1EC-FD51-4F40-B325-7401DEB3F37B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6B46A1EC-FD51-4F40-B325-7401DEB3F37B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0922C91A-D322-4FE0-9FF7-ABE0BA8D7803}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0922C91A-D322-4FE0-9FF7-ABE0BA8D7803}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0922C91A-D322-4FE0-9FF7-ABE0BA8D7803}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0922C91A-D322-4FE0-9FF7-ABE0BA8D7803}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{6B46A1EC-FD51-4F40-B325-7401DEB3F37B} = {FB2A4D46-9ADD-43E7-9F82-17FA46C82745}
+		{0922C91A-D322-4FE0-9FF7-ABE0BA8D7803} = {FB2A4D46-9ADD-43E7-9F82-17FA46C82745}
 	EndGlobalSection
 EndGlobal

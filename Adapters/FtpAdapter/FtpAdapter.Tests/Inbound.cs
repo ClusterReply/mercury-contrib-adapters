@@ -17,6 +17,7 @@ limitations under the License.
 #endregion
 using MbUnit.Framework;
 using Microsoft.ServiceModel.Channels.Common;
+using Reply.Cluster.Mercury.Adapters.Behaviors;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -43,7 +44,7 @@ namespace Reply.Cluster.Mercury.Adapters.Ftp.Tests
         protected abstract string GetFtpServerParameters();
         protected abstract FtpAdapterConnectionUri GetFtpAdapterConnectionUri(string inputFolder, string filter);
         protected abstract string GetExpectedAction(string directory, string fileName);
-        protected abstract ClientCredentials GetCredentials();
+        protected abstract AdapterClientCredentials GetCredentials();
 
         private static string AssemblyDirectory
         {
@@ -243,7 +244,9 @@ namespace Reply.Cluster.Mercury.Adapters.Ftp.Tests
 
             var connectionUri = GetFtpAdapterConnectionUri(inputFolder, filter);
 
-            host.AddServiceEndpoint(typeof(IService), new FtpAdapterBinding { PollingInterval = 15 }, connectionUri.Uri);
+            var endpoint = host.AddServiceEndpoint(typeof(IService), new FtpAdapterBinding { PollingInterval = 15 }, connectionUri.Uri);
+            endpoint.EndpointBehaviors.Add(GetCredentials());
+
             host.Open();
 
             return host;

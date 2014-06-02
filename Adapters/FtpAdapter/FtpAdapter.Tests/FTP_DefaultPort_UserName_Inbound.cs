@@ -33,11 +33,11 @@ using System.Threading.Tasks;
 namespace Reply.Cluster.Mercury.Adapters.Ftp.Tests
 {
     [TestFixture]
-    public class FTP_DefaultPort_Anonymous_Inbound : Inbound
+    public class FTP_DefaultPort_UserName_Inbound : Inbound
     {
         protected override string GetFtpServerParameters()
         {
-            return "ftpserv -rw";
+            return "ftpserv -rw -user=user -pw=pass";
         }
 
         protected override FtpAdapterConnectionUri GetFtpAdapterConnectionUri(string inputFolder, string filter)
@@ -52,7 +52,12 @@ namespace Reply.Cluster.Mercury.Adapters.Ftp.Tests
 
         protected override AdapterClientCredentials GetCredentials()
         {
-            return new AdapterClientCredentials();
+            var credentials = new AdapterClientCredentials();
+
+            credentials.UserName.UserName = "user";
+            credentials.UserName.Password = "pass";
+
+            return credentials;
         }
     }
 }

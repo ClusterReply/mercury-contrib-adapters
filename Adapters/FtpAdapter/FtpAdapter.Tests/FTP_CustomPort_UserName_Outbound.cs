@@ -16,8 +16,6 @@ limitations under the License.
 */
 #endregion
 using MbUnit.Framework;
-using Microsoft.ServiceModel.Channels.Common;
-using Reply.Cluster.Mercury.Adapters.Behaviors;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -28,31 +26,38 @@ using System.ServiceModel;
 using System.ServiceModel.Channels;
 using System.ServiceModel.Description;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Reply.Cluster.Mercury.Adapters.Ftp.Tests
 {
     [TestFixture]
-    public class FTP_DefaultPort_Anonymous_Inbound : Inbound
+    public class FTP_CustomPort_UserName_Outbound : Outbound
     {
         protected override string GetFtpServerParameters()
         {
-            return "ftpserv -rw";
+            return "ftpserv -rw -user=user -pw=pass -port=2021";
         }
 
-        protected override FtpAdapterConnectionUri GetFtpAdapterConnectionUri(string inputFolder, string filter)
+        protected override FtpAdapterConnectionUri GetFtpAdapterConnectionUri(string outputFolder, string destinationFile)
         {
-            return new FtpAdapterConnectionUri { HostName = "127.0.0.1", Path = inputFolder, FileName = filter };
+            return new FtpAdapterConnectionUri { HostName = "127.0.0.1", Port = 2021, Path = outputFolder, FileName = destinationFile };
         }
 
-        protected override string GetExpectedAction(string directory, string fileName)
+        protected override ClientCredentials GetCredentials()
         {
-            return string.Format("ftp://127.0.0.1/{0}/{1}", directory, fileName);
+            var credentials = new ClientCredentials();
+
+            credentials.UserName.UserName = "user";
+            credentials.UserName.Password = "pass";
+
+            return credentials;
         }
 
-        protected override AdapterClientCredentials GetCredentials()
+        protected override void SetCredentials(ClientCredentials clientCredentials)
         {
-            return new AdapterClientCredentials();
+            clientCredentials.UserName.UserName = "user";
+            clientCredentials.UserName.Password = "pass";
         }
     }
 }
