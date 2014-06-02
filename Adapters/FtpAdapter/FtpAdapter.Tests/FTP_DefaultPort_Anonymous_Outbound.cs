@@ -73,26 +73,30 @@ namespace Reply.Cluster.Mercury.Adapters.Ftp.Tests
             return message;
         }
 
-        [SetUp]
-        public void Initialize()
+        [FixtureSetUp]
+        public void StartServer()
         {
             //Debugger.Launch();
-
-            if (Directory.Exists(outputFolder))
-                Directory.Delete(outputFolder, true);
-
-            Directory.CreateDirectory(outputFolder);
 
             var processInfo = new ProcessStartInfo(ftpSeverPath, "ftpserv -rw") { WorkingDirectory = rootFolder };
 
             ftpServer = Process.Start(processInfo);
         }
 
+        [SetUp]
+        public void Initialize()
+        {
+            if (Directory.Exists(outputFolder))
+                Directory.Delete(outputFolder, true);
+
+            Directory.CreateDirectory(outputFolder);
+        }
+
         [Test]
         public void External_WriteFile_Simple()
         {
             External_OutputTest(
-                @"C:\Prova\File.txt",
+                "ftp://127.0.0.1/Prova/File.txt",
                 directory,
                 "Test.txt",
                 Path.Combine(outputFolder, @"Test.txt"),
@@ -103,7 +107,7 @@ namespace Reply.Cluster.Mercury.Adapters.Ftp.Tests
         public void External_WriteFile_FileNameWithMacroPassthrough()
         {
             External_OutputTest(
-                @"C:\Prova\File.txt",
+                "ftp://127.0.0.1/Prova/File.txt",
                 directory,
                 "%SourceFileName%",
                 Path.Combine(outputFolder, "File.txt"),
@@ -114,7 +118,7 @@ namespace Reply.Cluster.Mercury.Adapters.Ftp.Tests
         public void External_WriteFile_FolderWithMacro()
         {
             External_OutputTest(
-                @"C:\Prova\File.txt",
+                "ftp://127.0.0.1/Prova/File.txt",
                 directory + "/%YEAR%/%MONTH%/%DAY%/",
                 "Test.txt",
                 Path.Combine(outputFolder, string.Format(@"{0:0000}/{1:00}/{2:00}/Test.txt", DateTime.Today.Year, DateTime.Today.Month, DateTime.Today.Day)),
@@ -125,7 +129,7 @@ namespace Reply.Cluster.Mercury.Adapters.Ftp.Tests
         public void External_WriteFile_FileNameWithMacro()
         {
             External_OutputTest(
-                @"C:\Prova\File.txt",
+                "ftp://127.0.0.1/Prova/File.txt",
                 directory,
                 "%YEAR%%MONTH%%DAY%.txt",
                 Path.Combine(outputFolder, string.Format("{0:0000}{1:00}{2:00}.txt", DateTime.Today.Year, DateTime.Today.Month, DateTime.Today.Day)),
@@ -136,7 +140,7 @@ namespace Reply.Cluster.Mercury.Adapters.Ftp.Tests
         public void External_WriteFile_FolderWithMacroAndFileNameWithMacroPassthrough()
         {
             External_OutputTest(
-                @"C:\Prova\File.txt",
+                "ftp://127.0.0.1/Prova/File.txt",
                 directory + "/%YEAR%/%MONTH%/%DAY%/",
                 "%SourceFileName%",
                 Path.Combine(outputFolder, string.Format(@"{0:0000}/{1:00}/{2:00}/File.txt", DateTime.Today.Year, DateTime.Today.Month, DateTime.Today.Day)),
@@ -147,7 +151,7 @@ namespace Reply.Cluster.Mercury.Adapters.Ftp.Tests
         public void External_WriteFile_FolderWithMacroAndFileNameWithMacro()
         {
             External_OutputTest(
-                @"C:\Prova\File.txt",
+                "ftp://127.0.0.1/Prova/File.txt",
                 directory + "/%YEAR%/%MONTH%/%DAY%/",
                 "%YEAR%%MONTH%%DAY%.txt",
                 Path.Combine(outputFolder, string.Format(@"{0:0000}/{1:00}/{2:00}/{0:0000}{1:00}{2:00}.txt", DateTime.Today.Year, DateTime.Today.Month, DateTime.Today.Day)),
@@ -161,7 +165,7 @@ namespace Reply.Cluster.Mercury.Adapters.Ftp.Tests
             System.IO.File.WriteAllText(Path.Combine(outputFolder, "File.txt"), Properties.Resources.TestFile_Existing);
 
             External_OutputTest(
-                @"C:\Prova\File.txt",
+                "ftp://127.0.0.1/Prova/File.txt",
                 directory,
                 "File.txt",
                 Path.Combine(outputFolder, "File.txt"),
@@ -174,7 +178,7 @@ namespace Reply.Cluster.Mercury.Adapters.Ftp.Tests
             System.IO.File.WriteAllText(Path.Combine(outputFolder, "File.txt"), Properties.Resources.TestFile_Existing);
 
             External_OutputTest(
-                @"C:\Prova\File.txt",
+                "ftp://127.0.0.1/Prova/File.txt",
                 directory,
                 "File.txt",
                 Path.Combine(outputFolder, "File.txt"),
@@ -189,7 +193,7 @@ namespace Reply.Cluster.Mercury.Adapters.Ftp.Tests
             System.IO.File.WriteAllText(Path.Combine(outputFolder, "File.txt"), Properties.Resources.TestFile_Existing);
 
             External_OutputTest(
-                @"C:\Prova\File.txt",
+                "ftp://127.0.0.1/Prova/File.txt",
                 directory,
                 "File.txt",
                 Path.Combine(outputFolder, "File.txt"),
@@ -201,7 +205,7 @@ namespace Reply.Cluster.Mercury.Adapters.Ftp.Tests
         public void Internal_WriteFile_Simple()
         {
             Internal_OutputTest(
-                @"C:\Prova\File.txt",
+                "ftp://127.0.0.1/Prova/File.txt",
                 directory,
                 "Test.txt",
                 Path.Combine(outputFolder, @"Test.txt"),
@@ -212,7 +216,7 @@ namespace Reply.Cluster.Mercury.Adapters.Ftp.Tests
         public void Internal_WriteFile_FileNameWithMacroPassthrough()
         {
             Internal_OutputTest(
-                @"C:\Prova\File.txt",
+                "ftp://127.0.0.1/Prova/File.txt",
                 directory,
                 "%SourceFileName%",
                 Path.Combine(outputFolder, "File.txt"),
@@ -223,7 +227,7 @@ namespace Reply.Cluster.Mercury.Adapters.Ftp.Tests
         public void Internal_WriteFile_FolderWithMacro()
         {
             Internal_OutputTest(
-                @"C:\Prova\File.txt",
+                "ftp://127.0.0.1/Prova/File.txt",
                 directory + "/%YEAR%/%MONTH%/%DAY%/",
                 "Test.txt",
                 Path.Combine(outputFolder, string.Format(@"{0:0000}/{1:00}/{2:00}/Test.txt", DateTime.Today.Year, DateTime.Today.Month, DateTime.Today.Day)),
@@ -234,7 +238,7 @@ namespace Reply.Cluster.Mercury.Adapters.Ftp.Tests
         public void Internal_WriteFile_FileNameWithMacro()
         {
             Internal_OutputTest(
-                @"C:\Prova\File.txt",
+                "ftp://127.0.0.1/Prova/File.txt",
                 directory,
                 "%YEAR%%MONTH%%DAY%.txt",
                 Path.Combine(outputFolder, string.Format("{0:0000}{1:00}{2:00}.txt", DateTime.Today.Year, DateTime.Today.Month, DateTime.Today.Day)),
@@ -245,7 +249,7 @@ namespace Reply.Cluster.Mercury.Adapters.Ftp.Tests
         public void Internal_WriteFile_FolderWithMacroAndFileNameWithMacroPassthrough()
         {
             Internal_OutputTest(
-                @"C:\Prova\File.txt",
+                "ftp://127.0.0.1/Prova/File.txt",
                 directory + "/%YEAR%/%MONTH%/%DAY%/",
                 "%SourceFileName%",
                 Path.Combine(outputFolder, string.Format(@"{0:0000}/{1:00}/{2:00}/File.txt", DateTime.Today.Year, DateTime.Today.Month, DateTime.Today.Day)),
@@ -256,7 +260,7 @@ namespace Reply.Cluster.Mercury.Adapters.Ftp.Tests
         public void Internal_WriteFile_FolderWithMacroAndFileNameWithMacro()
         {
             Internal_OutputTest(
-                @"C:\Prova\File.txt",
+                "ftp://127.0.0.1/Prova/File.txt",
                 directory + "/%YEAR%/%MONTH%/%DAY%/",
                 "%YEAR%%MONTH%%DAY%.txt",
                 Path.Combine(outputFolder, string.Format(@"{0:0000}/{1:00}/{2:00}/{0:0000}{1:00}{2:00}.txt", DateTime.Today.Year, DateTime.Today.Month, DateTime.Today.Day)),
@@ -270,7 +274,7 @@ namespace Reply.Cluster.Mercury.Adapters.Ftp.Tests
             System.IO.File.WriteAllText(Path.Combine(outputFolder, "File.txt"), Properties.Resources.TestFile_Existing);
 
             Internal_OutputTest(
-                @"C:\Prova\File.txt",
+                "ftp://127.0.0.1/Prova/File.txt",
                 directory,
                 "File.txt",
                 Path.Combine(outputFolder, "File.txt"),
@@ -283,7 +287,7 @@ namespace Reply.Cluster.Mercury.Adapters.Ftp.Tests
             System.IO.File.WriteAllText(Path.Combine(outputFolder, "File.txt"), Properties.Resources.TestFile_Existing);
 
             Internal_OutputTest(
-                @"C:\Prova\File.txt",
+                "ftp://127.0.0.1/Prova/File.txt",
                 directory,
                 "File.txt",
                 Path.Combine(outputFolder, "File.txt"),
@@ -298,7 +302,7 @@ namespace Reply.Cluster.Mercury.Adapters.Ftp.Tests
             System.IO.File.WriteAllText(Path.Combine(outputFolder, "File.txt"), Properties.Resources.TestFile_Existing);
 
             Internal_OutputTest(
-                @"C:\Prova\File.txt",
+                "ftp://127.0.0.1/Prova/File.txt",
                 directory,
                 "File.txt",
                 Path.Combine(outputFolder, "File.txt"),
@@ -361,10 +365,14 @@ namespace Reply.Cluster.Mercury.Adapters.Ftp.Tests
         [TearDown]
         public void Cleanup()
         {
-            ftpServer.Kill();
-
             if (Directory.Exists(outputFolder))
                 Directory.Delete(outputFolder, true);
+        }
+
+        [FixtureTearDown]
+        public void StopServer()
+        {
+            ftpServer.Kill();
         }
     }
 }

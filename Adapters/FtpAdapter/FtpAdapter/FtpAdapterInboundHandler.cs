@@ -134,8 +134,10 @@ namespace Reply.Cluster.Mercury.Adapters.Ftp
 
             if (result)
             {
+                Uri originalUri = connectionUri.Uri;
+
                 message = ByteStreamMessage.CreateMessage(item.Stream);
-                message.Headers.Action = new UriBuilder(item.Path).Uri.ToString();
+                message.Headers.Action = new UriBuilder(originalUri.Scheme, originalUri.Host, originalUri.Port, item.Path).Uri.ToString();
 
                 reply = new FtpAdapterInboundReply(item.Client, item.Path, item.Stream);
             }
