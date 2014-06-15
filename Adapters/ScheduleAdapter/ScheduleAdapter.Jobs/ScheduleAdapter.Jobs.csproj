@@ -57,6 +57,7 @@
     <None Include="..\..\Apache.licenseheader">
       <Link>Apache.licenseheader</Link>
     </None>
+    <None Include="ScheduleAdapter.Jobs.nuspec" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\ScheduleAdapter.Messages\ScheduleAdapter.Messages.csproj">
