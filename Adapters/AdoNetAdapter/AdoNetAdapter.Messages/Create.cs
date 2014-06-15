@@ -16,6 +16,7 @@ limitations under the License.
 */
 #endregion
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
@@ -26,7 +27,12 @@ using System.Threading.Tasks;
 namespace Reply.Cluster.Mercury.Adapters.AdoNet.Messages
 {
     [CollectionDataContract(Name = Constants.CREATE, ItemName = Constants.ROW, Namespace = Constants.MESSAGENAMESPACE)]
-    public class Create<T> : List<T> { }
+    public class Create<T> : List<T>
+    {
+        public Create() : base() { }
+        public Create(IEnumerable collection) : base(collection.OfType<T>()) { }
+        public Create(IEnumerable<T> collection) : base(collection) { }
+    }
 
     [DataContract(Name = Constants.CREATE_RESULT, Namespace = Constants.MESSAGENAMESPACE)]
     public class CreateResult : Result { }
@@ -34,6 +40,21 @@ namespace Reply.Cluster.Mercury.Adapters.AdoNet.Messages
     [MessageContract(IsWrapped = false)]
     public class CreateMessage<T>
     {
+        public CreateMessage()
+        {
+            Body = new Create<T>();
+        }
+
+        public CreateMessage(IEnumerable collection)
+        {
+            Body = new Create<T>(collection);
+        }
+
+        public CreateMessage(IEnumerable<T> collection)
+        {
+            Body = new Create<T>(collection);
+        }
+
         [MessageBodyMember(Name = Constants.CREATE, Namespace = Constants.MESSAGENAMESPACE)]
         public Create<T> Body { get; set; }
     }

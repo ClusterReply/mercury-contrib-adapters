@@ -16,6 +16,7 @@ limitations under the License.
 */
 #endregion
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
@@ -26,11 +27,22 @@ using System.Threading.Tasks;
 namespace Reply.Cluster.Mercury.Adapters.AdoNet.Messages
 {
     [CollectionDataContract(Name = Constants.UPDATE, ItemName = Constants.ROW, Namespace = Constants.MESSAGENAMESPACE)]
-    public class Update<T> : List<Pair<T>> { }
+    public class Update<T> : List<Pair<T>>
+    {
+        public Update() : base() { }
+        public Update(IEnumerable collection) : base(collection.OfType<Pair<T>>()) { }
+        public Update(IEnumerable<Pair<T>> collection) : base(collection) { }
+    }
 
     [DataContract(Name = "Pair", Namespace = Constants.MESSAGENAMESPACE)]
     public class Pair<T>
     {
+        public Pair(T before, T after)
+        {
+            Before = before;
+            After = after;
+        }
+
         [DataMember(Name= "Before")]
         public T Before { get; set; }
 
@@ -44,6 +56,21 @@ namespace Reply.Cluster.Mercury.Adapters.AdoNet.Messages
     [MessageContract(IsWrapped = false)]
     public class UpdateMessage<T>
     {
+        public UpdateMessage()
+        {
+            Body = new Update<T>();
+        }
+
+        public UpdateMessage(IEnumerable collection)
+        {
+            Body = new Update<T>(collection);
+        }
+
+        public UpdateMessage(IEnumerable<Pair<T>> collection)
+        {
+            Body = new Update<T>(collection);
+        }
+
         [MessageBodyMember(Name = Constants.UPDATE, Namespace = Constants.MESSAGENAMESPACE)]
         public Update<T> Body { get; set; }
     }
