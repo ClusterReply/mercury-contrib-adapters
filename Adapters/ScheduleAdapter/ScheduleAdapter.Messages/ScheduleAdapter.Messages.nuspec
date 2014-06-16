@@ -6,6 +6,7 @@
     <title>$title$</title>
     <authors>$author$</authors>
     <owners>$author$</owners>
+    <iconUrl>http://b.vimeocdn.com/ps/329/760/3297601_300.jpg</iconUrl>
     <licenseUrl>http://www.apache.org/licenses/LICENSE-2.0</licenseUrl>
     <projectUrl>https://github.com/ClusterReply/mercury-contrib-adapters</projectUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
