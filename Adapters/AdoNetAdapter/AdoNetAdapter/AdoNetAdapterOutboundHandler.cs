@@ -92,7 +92,7 @@ namespace Reply.Cluster.Mercury.Adapters.AdoNet
 
                     var scopeOptions = this.Connection.ConnectionFactory.Adapter.UseAmbientTransaction ? TransactionScopeOption.Required : TransactionScopeOption.RequiresNew;
 
-                    using (var scope = new TransactionScope(scopeOptions, new TransactionOptions { IsolationLevel = Connection.ConnectionFactory.Adapter.IsolationLevel }))
+                    using (var scope = new TransactionScope(scopeOptions, new TransactionOptions { IsolationLevel = Connection.ConnectionFactory.Adapter.IsolationLevel, Timeout = timeout }))
                     {
                         if (operationType == "Execute")
                         {

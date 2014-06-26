@@ -226,6 +226,50 @@ namespace Reply.Cluster.Mercury.Adapters.AdoNet
             } while (reader.NodeType == XmlNodeType.Element);
         }
 
+        private static void SetTargetParameters(Dictionary<string, object> values, DbParameterCollection parameters)
+        {
+            var targetParametes = GetTargetParameters(parameters);
+
+            foreach (var parameter in targetParametes.Values)
+                parameter.Value = DBNull.Value;
+
+            foreach (var name in values.Keys)
+            {
+                if (!targetParametes.ContainsKey(name))
+                    throw new IndexOutOfRangeException(string.Format("Column '{0}' not found", name));
+
+                var parameter = targetParametes[name];
+                var value = values[name];
+
+                if (value != null)
+                    parameter.Value = value;
+            }
+        }
+
+        private static Dictionary<string, object> GetParameterValues(XmlReader reader, DbParameterCollection parameters)
+        {
+            var result = new Dictionary<string, object>();
+
+            var targetParametes = GetTargetParameters(parameters);
+
+            reader.MoveToContent();
+            reader.Read();
+
+            do
+            {
+                string name = reader.LocalName;
+                if (!targetParametes.ContainsKey(name))
+                    throw new IndexOutOfRangeException(string.Format("Column '{0}' not found", name));
+
+                var parameter = targetParametes[name];
+                object value = serializers[parameter.DbType].ReadObject(reader, false);
+
+                result[name] = value;
+            } while (reader.NodeType == XmlNodeType.Element);
+
+            return result;
+        }
+
         public static void SetTargetParameters(XmlReader reader, DbParameterCollection parameters)
         {
             var targetParametes = GetTargetParameters(parameters);
@@ -316,15 +360,50 @@ namespace Reply.Cluster.Mercury.Adapters.AdoNet
         {
             int count = 0;
 
+            string baseSelect = commandBuilder.DataAdapter.SelectCommand.CommandText;
+            var baseCommand = commandBuilder.GetInsertCommand();
+            var commandCache = new Dictionary<string, DbCommand>();
+
             while (xmlReader.ReadToFollowing("Row", AdoNetAdapter.MESSAGENAMESPACE))
             {
-                var command = commandBuilder.GetInsertCommand();
-                DbHelpers.SetTargetParameters(xmlReader.ReadSubtree(), command.Parameters);
+                var values = GetParameterValues(xmlReader.ReadSubtree(), baseCommand.Parameters);
+                string columns = CreateColumnList(commandBuilder, values.Keys);
+                
+                DbCommand command = null;
 
+                if (commandCache.ContainsKey(columns))
+                    command = commandCache[columns];
+                else
+                {
+                    commandBuilder.DataAdapter.SelectCommand.CommandText = baseSelect.Replace("*", columns);
+                    commandBuilder.RefreshSchema();
+                    
+                    command = commandBuilder.GetInsertCommand();
+
+                    commandCache[columns] = command;
+                }
+                
+                DbHelpers.SetTargetParameters(values, command.Parameters);
+                
                 count += command.ExecuteNonQuery();
             }
 
             return DbHelpers.CreateMessage(operationType, count, action);
+        }
+
+        private static string CreateColumnList(DbCommandBuilder commandBuilder, IEnumerable<string> columns)
+        {
+            var builder = new StringBuilder();
+
+            foreach (string column in columns)
+            {
+                builder.Append(commandBuilder.QuoteIdentifier(column));
+                builder.Append(',');
+            }
+
+            builder.Remove(builder.Length - 1, 1);
+
+            return builder.ToString();
         }
 
         public static Message Read(XmlReader xmlReader, DbConnection connection, string action)
