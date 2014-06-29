@@ -171,9 +171,33 @@ namespace Reply.Cluster.Mercury.Adapters.AdoNet
             return parameters;
         }
 
+        private static Dictionary<string, object> GetParameterValues(XmlReader reader, DbParameterCollection parameters)
+        {
+            var result = new Dictionary<string, object>();
+
+            var parametes = GetParameters(parameters);
+
+            reader.MoveToContent();
+            reader.Read();
+
+            do
+            {
+                string name = reader.LocalName;
+                if (!parametes.ContainsKey(name))
+                    throw new IndexOutOfRangeException(string.Format("Column '{0}' not found", name));
+
+                var parameter = parametes[name];
+                object value = serializers[parameter.DbType].ReadObject(reader, false);
+
+                result[name] = value;
+            } while (reader.NodeType == XmlNodeType.Element);
+
+            return result;
+        }
+
         internal static void SetParameters(XmlReader reader, DbParameterCollection parameters)
         {
-            var parms = GetParameters(parameters);
+            var parms = GetPrecedureParameters(parameters);
             
             reader.MoveToContent();
             reader.Read();
@@ -193,6 +217,32 @@ namespace Reply.Cluster.Mercury.Adapters.AdoNet
                 else
                     parameter.Value = DBNull.Value;
             } while (reader.NodeType == XmlNodeType.Element);
+        }
+
+        private static void SetSourceParameters(Dictionary<string, object> values, DbParameterCollection parameters)
+        {
+            var sourceParametes = GetSourceParameters(parameters);
+            var nullParametes = GetNullMappingParameters(parameters);
+
+            foreach (var parameter in sourceParametes.Values)
+                parameter.Value = DBNull.Value;
+
+            foreach (var name in values.Keys)
+            {
+                if (!sourceParametes.ContainsKey(name))
+                    throw new IndexOutOfRangeException(string.Format("Column '{0}' not found", name));
+
+                var parameter = sourceParametes[name];
+                var value = values[name];
+
+                if (value != null)
+                {
+                    if (nullParametes.ContainsKey(name))
+                        nullParametes[name].Value = false;
+
+                    parameter.Value = value;
+                }
+            }
         }
 
         public static void SetSourceParameters(XmlReader reader, DbParameterCollection parameters)
@@ -244,30 +294,6 @@ namespace Reply.Cluster.Mercury.Adapters.AdoNet
                 if (value != null)
                     parameter.Value = value;
             }
-        }
-
-        private static Dictionary<string, object> GetParameterValues(XmlReader reader, DbParameterCollection parameters)
-        {
-            var result = new Dictionary<string, object>();
-
-            var targetParametes = GetTargetParameters(parameters);
-
-            reader.MoveToContent();
-            reader.Read();
-
-            do
-            {
-                string name = reader.LocalName;
-                if (!targetParametes.ContainsKey(name))
-                    throw new IndexOutOfRangeException(string.Format("Column '{0}' not found", name));
-
-                var parameter = targetParametes[name];
-                object value = serializers[parameter.DbType].ReadObject(reader, false);
-
-                result[name] = value;
-            } while (reader.NodeType == XmlNodeType.Element);
-
-            return result;
         }
 
         public static void SetTargetParameters(XmlReader reader, DbParameterCollection parameters)
@@ -422,17 +448,42 @@ namespace Reply.Cluster.Mercury.Adapters.AdoNet
 
         public static Message Update(XmlReader xmlReader, DbConnection connection, string operationType, DbCommandBuilder commandBuilder, string action)
         {
+            string baseSelect = commandBuilder.DataAdapter.SelectCommand.CommandText;
+            var baseCommand = commandBuilder.GetUpdateCommand();
+            var commandCache = new Dictionary<string, DbCommand>();
+
             int count = 0;
 
             while (xmlReader.ReadToFollowing("Pair", AdoNetAdapter.MESSAGENAMESPACE))
             {
-                var command = commandBuilder.GetUpdateCommand();
-
                 xmlReader.ReadToFollowing("Before", AdoNetAdapter.MESSAGENAMESPACE);
-                DbHelpers.SetSourceParameters(xmlReader.ReadSubtree(), command.Parameters);
 
+                var beforeValues = GetParameterValues(xmlReader.ReadSubtree(), baseCommand.Parameters);
+                string beforeColumns = CreateColumnList(commandBuilder, beforeValues.Keys);
+                
                 xmlReader.ReadToFollowing("After", AdoNetAdapter.MESSAGENAMESPACE);
-                DbHelpers.SetTargetParameters(xmlReader.ReadSubtree(), command.Parameters);
+
+                var afterValues = GetParameterValues(xmlReader.ReadSubtree(), baseCommand.Parameters);
+                string afterColumns = CreateColumnList(commandBuilder, afterValues.Keys);
+
+                string columns = string.Format("B:{0}|A:{1}", beforeColumns, afterColumns);
+
+                DbCommand command = null;
+
+                if (commandCache.ContainsKey(columns))
+                    command = commandCache[columns];
+                else
+                {
+                    commandBuilder.DataAdapter.SelectCommand.CommandText = baseSelect.Replace("*", columns);
+                    commandBuilder.RefreshSchema();
+
+                    command = commandBuilder.GetUpdateCommand();
+
+                    commandCache[columns] = command;
+                }
+
+                DbHelpers.SetSourceParameters(beforeValues, command.Parameters);
+                DbHelpers.SetTargetParameters(afterValues, command.Parameters);
 
                 count += command.ExecuteNonQuery();
             }
@@ -442,12 +493,32 @@ namespace Reply.Cluster.Mercury.Adapters.AdoNet
 
         public static Message Delete(XmlReader xmlReader, DbConnection connection, string operationType, DbCommandBuilder commandBuilder, string action)
         {
+            string baseSelect = commandBuilder.DataAdapter.SelectCommand.CommandText;
+            var baseCommand = commandBuilder.GetDeleteCommand();
+            var commandCache = new Dictionary<string, DbCommand>();
+
             int count = 0;
 
             while (xmlReader.ReadToFollowing("Row", AdoNetAdapter.MESSAGENAMESPACE))
             {
-                var command = commandBuilder.GetDeleteCommand();
-                DbHelpers.SetSourceParameters(xmlReader.ReadSubtree(), command.Parameters);
+                var values = GetParameterValues(xmlReader.ReadSubtree(), baseCommand.Parameters);
+                string columns = CreateColumnList(commandBuilder, values.Keys);
+
+                DbCommand command = null;
+
+                if (commandCache.ContainsKey(columns))
+                    command = commandCache[columns];
+                else
+                {
+                    commandBuilder.DataAdapter.SelectCommand.CommandText = baseSelect.Replace("*", columns);
+                    commandBuilder.RefreshSchema();
+
+                    command = commandBuilder.GetDeleteCommand();
+
+                    commandCache[columns] = command;
+                }
+
+                DbHelpers.SetSourceParameters(values, command.Parameters);
 
                 count += command.ExecuteNonQuery();
             }
@@ -484,9 +555,14 @@ namespace Reply.Cluster.Mercury.Adapters.AdoNet
             }
         }
 
-        private static Dictionary<string, DbParameter> GetParameters(DbParameterCollection parameters)
+        private static Dictionary<string, DbParameter> GetPrecedureParameters(DbParameterCollection parameters)
         {
             return parameters.Cast<DbParameter>().ToDictionary(p => string.IsNullOrEmpty(p.SourceColumn) ? p.ParameterName.TrimStart('@') : p.SourceColumn);
+        }
+
+        private static Dictionary<string, DbParameter> GetParameters(DbParameterCollection parameters)
+        {
+            return parameters.Cast<DbParameter>().Where(p => !p.SourceColumnNullMapping).ToDictionary(p => p.SourceColumn);
         }
 
         private static Dictionary<string, DbParameter> GetSourceParameters(DbParameterCollection parameters)
