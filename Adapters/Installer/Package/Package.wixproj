@@ -1,0 +1,127 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
+    <ProductVersion>3.8</ProductVersion>
+    <ProjectGuid>53d1529b-5de1-4327-8805-0b9d848f1654</ProjectGuid>
+    <SchemaVersion>2.0</SchemaVersion>
+    <OutputName>Package</OutputName>
+    <OutputType>Package</OutputType>
+    <WixTargetsPath Condition=" '$(WixTargetsPath)' == '' AND '$(MSBuildExtensionsPath32)' != '' ">$(MSBuildExtensionsPath32)\Microsoft\WiX\v3.x\Wix.targets</WixTargetsPath>
+    <WixTargetsPath Condition=" '$(WixTargetsPath)' == '' ">$(MSBuildExtensionsPath)\Microsoft\WiX\v3.x\Wix.targets</WixTargetsPath>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
+    <OutputPath>bin\$(Configuration)\</OutputPath>
+    <IntermediateOutputPath>obj\$(Configuration)\</IntermediateOutputPath>
+    <DefineConstants>Debug</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
+    <OutputPath>bin\$(Configuration)\</OutputPath>
+    <IntermediateOutputPath>obj\$(Configuration)\</IntermediateOutputPath>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+    <OutputPath>..\Debug</OutputPath>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+    <OutputPath>..\Release</OutputPath>
+  </PropertyGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="default.wxl" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Product.Components.wxs" />
+    <Compile Include="Product.Features.wxs" />
+    <Compile Include="Product.Uninstaller.wxs" />
+    <Compile Include="Product.wxs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="job_scheduling_data_2_0.xsd" />
+    <Content Include="packages.config" />
+    <Content Include="Product.Defines.wxi" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\AdoNetAdapter\AdoNetAdapter.Messages\AdoNetAdapter.Messages.csproj">
+      <Name>AdoNetAdapter.Messages</Name>
+      <Project>{d9d59877-b041-465a-9396-7d9ae769cb70}</Project>
+      <Private>True</Private>
+      <DoNotHarvest>True</DoNotHarvest>
+      <RefProjectOutputGroups>Binaries;Content;Satellites</RefProjectOutputGroups>
+      <RefTargetDir>INSTALLFOLDER</RefTargetDir>
+    </ProjectReference>
+    <ProjectReference Include="..\..\AdoNetAdapter\AdoNetAdapter\AdoNetAdapter.csproj">
+      <Name>AdoNetAdapter</Name>
+      <Project>{f49a28d2-7b38-40dd-8d25-074edd763886}</Project>
+      <Private>True</Private>
+      <DoNotHarvest>True</DoNotHarvest>
+      <RefProjectOutputGroups>Binaries;Content;Satellites</RefProjectOutputGroups>
+      <RefTargetDir>INSTALLFOLDER</RefTargetDir>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Behaviors\Behaviors.csproj">
+      <Name>Behaviors</Name>
+      <Project>{0922c91a-d322-4fe0-9ff7-abe0ba8d7803}</Project>
+      <Private>True</Private>
+      <DoNotHarvest>True</DoNotHarvest>
+      <RefProjectOutputGroups>Binaries;Content;Satellites</RefProjectOutputGroups>
+      <RefTargetDir>INSTALLFOLDER</RefTargetDir>
+    </ProjectReference>
+    <ProjectReference Include="..\..\FileAdapter\FileAdapter\FileAdapter.csproj">
+      <Name>FileAdapter</Name>
+      <Project>{2c013558-4fa7-4cef-9a09-f894ed4c523d}</Project>
+      <Private>True</Private>
+      <DoNotHarvest>True</DoNotHarvest>
+      <RefProjectOutputGroups>Binaries;Content;Satellites</RefProjectOutputGroups>
+      <RefTargetDir>INSTALLFOLDER</RefTargetDir>
+    </ProjectReference>
+    <ProjectReference Include="..\..\FtpAdapter\FtpAdapter\FtpAdapter.csproj">
+      <Name>FtpAdapter</Name>
+      <Project>{0da8520d-d161-40ab-9be5-22b8a9503379}</Project>
+      <Private>True</Private>
+      <DoNotHarvest>True</DoNotHarvest>
+      <RefProjectOutputGroups>Binaries;Content;Satellites</RefProjectOutputGroups>
+      <RefTargetDir>INSTALLFOLDER</RefTargetDir>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Helpers\Helpers.csproj">
+      <Name>Helpers</Name>
+      <Project>{6b46a1ec-fd51-4f40-b325-7401deb3f37b}</Project>
+      <Private>True</Private>
+      <DoNotHarvest>True</DoNotHarvest>
+      <RefProjectOutputGroups>Binaries;Content;Satellites</RefProjectOutputGroups>
+      <RefTargetDir>INSTALLFOLDER</RefTargetDir>
+    </ProjectReference>
+    <ProjectReference Include="..\..\ScheduleAdapter\ScheduleAdapter.Jobs\ScheduleAdapter.Jobs.csproj">
+      <Name>ScheduleAdapter.Jobs</Name>
+      <Project>{fce4eb05-3b94-4d8e-a46c-18bb8345dc79}</Project>
+      <Private>True</Private>
+      <DoNotHarvest>True</DoNotHarvest>
+      <RefProjectOutputGroups>Binaries;Content;Satellites</RefProjectOutputGroups>
+      <RefTargetDir>INSTALLFOLDER</RefTargetDir>
+    </ProjectReference>
+    <ProjectReference Include="..\..\ScheduleAdapter\ScheduleAdapter.Messages\ScheduleAdapter.Messages.csproj">
+      <Name>ScheduleAdapter.Messages</Name>
+      <Project>{406d02f5-8e72-4f74-8f0b-6cb0f6bf63d4}</Project>
+      <Private>True</Private>
+      <DoNotHarvest>True</DoNotHarvest>
+      <RefProjectOutputGroups>Binaries;Content;Satellites</RefProjectOutputGroups>
+      <RefTargetDir>INSTALLFOLDER</RefTargetDir>
+    </ProjectReference>
+    <ProjectReference Include="..\..\ScheduleAdapter\ScheduleAdapter\ScheduleAdapter.csproj">
+      <Name>ScheduleAdapter</Name>
+      <Project>{21c15fe0-ab6c-4a53-bd80-392c71e21324}</Project>
+      <Private>True</Private>
+      <DoNotHarvest>True</DoNotHarvest>
+      <RefProjectOutputGroups>Binaries;Content;Satellites</RefProjectOutputGroups>
+      <RefTargetDir>INSTALLFOLDER</RefTargetDir>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(WixTargetsPath)" />
+  <!--
+	To modify your build process, add your task inside one of the targets below and uncomment it.
+	Other similar extension points exist, see Wix.targets.
+	<Target Name="BeforeBuild">
+	</Target>
+	<Target Name="AfterBuild">
+	</Target>
+	-->
+  <Import Condition="" Project="$(SharpSetupTargetsPath)\SharpSetup.WixTranslation.targets" />
+</Project>

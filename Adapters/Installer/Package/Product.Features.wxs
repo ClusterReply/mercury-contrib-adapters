@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+  <Fragment>
+    <Feature Id="MainFeature" Level="1" Title="!(loc.FEATURE.MAINFEATURE.TITLE)" Description="!(loc.FEATURE.MAINFEATURE.DESCRIPTION)" Display="expand">
+      <ComponentRef Id="pmd" />
+      <ComponentRef Id="pmpd" />
+      <ComponentGroupRef Id="Reply.Cluster.Mercury.Adapters" />
+      <Feature Id="AdoNetAdapter" Level="2" Title="!(loc.FEATURE.ADONET.TITLE)" Description="!(loc.FEATURE.ADONET.DESCRIPTION)">
+        <ComponentGroupRef Id="Reply.Cluster.Mercury.Adapters.AdoNet" />
+        <Condition Level="30000">TEST = "YES"</Condition>
+      </Feature>
+      <Feature Id="FileAdapter" Level="2" Title="!(loc.FEATURE.FILE.TITLE)" Description="!(loc.FEATURE.FILE.DESCRIPTION)">
+        <ComponentGroupRef Id="Reply.Cluster.Mercury.Adapters.File" />
+        <Condition Level="30000">TEST = "YES"</Condition>
+      </Feature>
+      <Feature Id="FtpAdapter" Level="2" Title="!(loc.FEATURE.FTP.TITLE)" Description="!(loc.FEATURE.FTP.DESCRIPTION)">
+        <ComponentGroupRef Id="Reply.Cluster.Mercury.Adapters.Ftp" />
+        <Condition Level="30000">TEST = "YES"</Condition>
+      </Feature>
+      <Feature Id="ScheduleAdapter" Level="2" Title="!(loc.FEATURE.SCHEDULE.TITLE)" Description="!(loc.FEATURE.SCHEDULE.DESCRIPTION)">
+        <ComponentGroupRef Id="Reply.Cluster.Mercury.Adapters.Schedule" />
+        <Condition Level="30000">TEST = "YES"</Condition>
+      </Feature>
+    </Feature>
+  </Fragment>
+</Wix>

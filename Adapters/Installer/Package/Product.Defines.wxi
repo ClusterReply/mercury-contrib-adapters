@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Include>
+  <?define CompanyCode = "ClusterReply" ?>
+  <?define ProductCode = "Mercury" ?>
+  <?define SubCode = "Adapters" ?>
+  <?define AppCode = "MercuryAdapters" ?>
+  <?define AppProductCode = "{1e7d6d70-ce35-4451-9855-a8f9e990cfe8}" ?>
+  <?define AppUpgradeCode = "{e79f752c-17f2-488f-b7ec-1f52a4e299b3}" ?>
+  <?define AppVersionMajor = "1" ?>
+  <?define AppVersionMinor = "0" ?>
+  <?define AppVersionPatch = "0" ?>
+  <?define AppVersionBuild = "0" ?>
+  <?define AppVersion = "$(var.AppVersionMajor).$(var.AppVersionMinor).$(var.AppVersionPatch).$(var.AppVersionBuild)" ?>
+  <?define AppManufacturer = "Cluster Reply s.r.l." ?>
+  <?define DefaultCulture = "en-US" ?>
+  <?define GuiType = "WinForms" ?>
+</Include>

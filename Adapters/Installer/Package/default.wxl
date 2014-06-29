@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<WixLocalization Culture="default" xmlns="http://schemas.microsoft.com/wix/2006/localization" Codepage="65001">
+  <!-- This is translation to English (United States) -->
+  <String Id="LANGUAGE">1033</String>
+  <String Id="CULTURE">en-US</String>
+  <String Id="PRODUCTNAME">Reply Mercury</String>
+  <String Id="SUBNAME">WCF Adpaters</String>
+  <String Id="APPNAME">Reply Mercury - WCF Adpaters</String>
+  <String Id="SHORTCUT.UNINSTALLER.NAME">Uninstaller</String>
+  <String Id="FEATURE.UNINSTALLER.TITLE">Uninstaller</String>
+  <String Id="FEATURE.UNINSTALLER.DESCRIPTION">Description of uninstaller</String>
+  <String Id="FEATURE.MAINFEATURE.TITLE">Reply Mercury Adapters</String>
+  <String Id="FEATURE.MAINFEATURE.DESCRIPTION">WCF Adpaters used for Reply Mercury</String>
+  <String Id="FEATURE.ADONET.TITLE">ADO.NET Adapter</String>
+  <String Id="FEATURE.ADONET.DESCRIPTION">This is description of one of the subfeature of the product</String>
+  <String Id="FEATURE.FILE.TITLE">File Adapter</String>
+  <String Id="FEATURE.FILE.DESCRIPTION">This is description of one of the subfeature of the product</String>
+  <String Id="FEATURE.FTP.TITLE">FTP Adapter</String>
+  <String Id="FEATURE.FTP.DESCRIPTION">This is description of one of the subfeature of the product</String>
+  <String Id="FEATURE.SCHEDULE.TITLE">Scheduled Adapter</String>
+  <String Id="FEATURE.SCHEDULE.DESCRIPTION">This is description of one of the subfeature of the product</String>
+</WixLocalization>

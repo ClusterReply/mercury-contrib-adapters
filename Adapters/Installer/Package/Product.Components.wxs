@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+  <?include Product.Defines.wxi ?>
+  <Fragment>
+    <Directory Id="TARGETDIR" Name="SourceDir">
+      <Directory Id="ProgramMenuFolder" Name="Programs">
+        <Directory Id="ProgramMenuProductDir" Name="!(loc.PRODUCTNAME)">
+          <Directory Id="ProgramMenuDir" Name="!(loc.SUBNAME)">
+            <Component Id="pmd" Guid="{38f420d5-e4c0-4ce4-a3dc-cf61eedf55a7}">
+              <RegistryValue Root="HKCU" Key="SOFTWARE\$(var.CompanyCode)\$(var.ProductCode)\$(var.SubCode)\ProgramMenuDir" Type="string" Value="ProgramMenuDir" KeyPath="yes" />
+              <RemoveFolder Id="ProgramMenuDirRF" On="uninstall" />
+            </Component>
+          </Directory>
+          <Component Id="pmpd" Guid="{7a2abd5c-72b8-4ae1-8325-7fd0f0d68a31}">
+            <RegistryValue Root="HKCU" Key="SOFTWARE\$(var.CompanyCode)\$(var.ProductCode)\ProgramMenuDir" Type="string" Value="ProgramMenuDir" KeyPath="yes" />
+            <RemoveFolder Id="ProgramMenuProductDirRF" On="uninstall" />
+          </Component>
+        </Directory>
+      </Directory>
+      <Directory Id="DesktopFolder" Name="Desktop" />
+      <Directory Id="ProgramFilesFolder">
+        <Directory Id="PRODUCTLOCATION" Name="$(var.ProductCode)">
+          <Directory Id="INSTALLLOCATION" Name="$(var.SubCode)" />
+        </Directory>
+      </Directory>
+    </Directory>
+    <DirectoryRef Id="INSTALLLOCATION">
+      <Directory Id="GAC" Name="GAC">
+        <Component Id="GAC_Common.Logging.dll" Guid="{021f56e2-9d3e-4297-b25c-929e2cc35641}">
+          <File Id="GAC_fila975cccb05ec44658ae0ef37fd886999" KeyPath="yes" Source="..\..\..\packages\Common.Logging.2.1.2\lib\net40\Common.Logging.dll" Assembly=".net" />
+        </Component>
+        <Component Id="GAC_Quartz.dll" Guid="{b1adfd62-4a52-425b-a1c9-754bf260d613}">
+          <File Id="GAC_fila76e60a42b83444fb19463aa64d1d7b7" KeyPath="yes" Source="..\..\..\packages\Quartz.2.2.3\lib\net40\Quartz.dll" Assembly=".net" />
+        </Component>
+        <Component Id="GAC_System.Net.FtpClient.dll" Guid="{7de9380a-7007-4e42-9af3-0ecb65e1710e}">
+          <File Id="GAC_fil42e1a79fe22b480388a477f83eef543d" KeyPath="yes" Source="..\..\..\packages\System.Net.FtpClient.1.0.5200.21177\lib\net40\System.Net.FtpClient.dll" Assembly=".net" />
+        </Component>
+        <Component Id="GAC_Reply.Cluster.Mercury.Adapters.Behaviors.dll" Guid="{0cc6acef-347e-48f7-8bbc-6bfa843a25df}">
+          <File Id="GAC_filB997B491CD23C53E8DB72F85335D627E" KeyPath="yes" Name="$(var.Behaviors.TargetFileName)" Source="$(var.Behaviors.TargetPath)" Assembly=".net" />
+        </Component>
+        <Component Id="GAC_Reply.Cluster.Mercury.Adapters.Helpers.dll" Guid="{46858408-e0e9-498f-b6a9-4ab6814ec17b}">
+          <File Id="GAC_filCD8E5925B259D01D642256CC8403923E" KeyPath="yes" Name="$(var.Helpers.TargetFileName)" Source="$(var.Helpers.TargetPath)" Assembly=".net" />
+        </Component>
+        <Component Id="GAC_Reply.Cluster.Mercury.Adapters.AdoNet.AdoNetAdapter.dll" Guid="{837101b1-4370-4338-bc93-0633f10d1f21}">
+          <File Id="GAC_fil88C829AC631A6D5A28AE84250F3A92D7" KeyPath="yes" Name="$(var.AdoNetAdapter.TargetFileName)" Source="$(var.AdoNetAdapter.TargetPath)" Assembly=".net" />
+        </Component>
+        <Component Id="GAC_Reply.Cluster.Mercury.Adapters.AdoNet.AdoNetAdapter.Messages.dll" Guid="{1e68d712-8925-4ff4-8dee-a1f7a41ac45d}">
+          <File Id="GAC_fil9672C3CBCA38F6E73CF33B4DF8C04D62" KeyPath="yes" Name="$(var.AdoNetAdapter.Messages.TargetFileName)" Source="$(var.AdoNetAdapter.Messages.TargetPath)" Assembly=".net" />
+        </Component>
+        <Component Id="GAC_Reply.Cluster.Mercury.Adapters.File.FileAdapter.dll" Guid="{0918fa9f-4c3c-4d48-ae0d-605d1f02d559}">
+          <File Id="GAC_fil4F41723451EDC24741645BDCD18BEB4B" KeyPath="yes" Name="$(var.FileAdapter.TargetFileName)" Source="$(var.FileAdapter.TargetPath)" Assembly=".net" />
+        </Component>
+        <Component Id="GAC_Reply.Cluster.Mercury.Adapters.Ftp.FtpAdapter.dll" Guid="{77eb5b26-b381-4e95-aea0-dc66aa723146}">
+          <File Id="GAC_filCFBEF35F0A66532E2994D59D072D9B80" KeyPath="yes" Name="$(var.FtpAdapter.TargetFileName)" Source="$(var.FtpAdapter.TargetPath)" Assembly=".net" />
+        </Component>
+        <Component Id="GAC_Reply.Cluster.Mercury.Adapters.Schedule.ScheduleAdapter.dll" Guid="{a8025620-ca85-4440-ab0a-6182847fdfa9}">
+          <File Id="GAC_fil1CD2F66C3DC2DA8928EEDE24B2BD7968" KeyPath="yes" Name="$(var.ScheduleAdapter.TargetFileName)" Source="$(var.ScheduleAdapter.TargetPath)" Assembly=".net" />
+        </Component>
+        <Component Id="GAC_Reply.Cluster.Mercury.Adapters.Schedule.ScheduleAdapter.Jobs.dll" Guid="{0a6b45bf-4c20-49f2-a114-d986ff3ccd5a}">
+          <File Id="GAC_fil9B5A28E6751587DBD2D03BF7E83704D8" KeyPath="yes" Name="$(var.ScheduleAdapter.Jobs.TargetFileName)" Source="$(var.ScheduleAdapter.Jobs.TargetPath)" Assembly=".net" />
+        </Component>
+        <Component Id="GAC_Reply.Cluster.Mercury.Adapters.Schedule.ScheduleAdapter.Messages.dll" Guid="{4414f36d-3606-4fe0-a107-f7744b2925ba}">
+          <File Id="GAC_fil0F4F3729CFD497A8F996D789546A2AEC" KeyPath="yes" Name="$(var.ScheduleAdapter.Messages.TargetFileName)" Source="$(var.ScheduleAdapter.Messages.TargetPath)" Assembly=".net" />
+        </Component>
+      </Directory>
+      <Component Id="Common.Logging.dll" Guid="{a975cccb-05ec-4465-8ae0-ef37fd886999}">
+        <File Id="fila975cccb05ec44658ae0ef37fd886999" KeyPath="yes" Source="..\..\..\packages\Common.Logging.2.1.2\lib\net40\Common.Logging.dll" />
+      </Component>
+      <Component Id="Quartz.dll" Guid="{a76e60a4-2b83-444f-b194-63aa64d1d7b7}">
+        <File Id="fila76e60a42b83444fb19463aa64d1d7b7" KeyPath="yes" Source="..\..\..\packages\Quartz.2.2.3\lib\net40\Quartz.dll" />
+      </Component>
+      <Component Id="System.Net.FtpClient.dll" Guid="{42e1a79f-e22b-4803-88a4-77f83eef543d}">
+        <File Id="fil42e1a79fe22b480388a477f83eef543d" KeyPath="yes" Source="..\..\..\packages\System.Net.FtpClient.1.0.5200.21177\lib\net40\System.Net.FtpClient.dll" />
+      </Component>
+      <Component Id="Reply.Cluster.Mercury.Adapters.Behaviors.dll" Guid="{C51784C5-5E16-477E-BBBF-0AD4398245EB}">
+        <File Id="filB997B491CD23C53E8DB72F85335D627E" KeyPath="yes" Name="$(var.Behaviors.TargetFileName)" Source="$(var.Behaviors.TargetPath)" />
+      </Component>
+      <Component Id="Reply.Cluster.Mercury.Adapters.Helpers.dll" Guid="{4A72FE40-B2B0-4CC0-AB6D-AA69D7D145E9}">
+        <File Id="filCD8E5925B259D01D642256CC8403923E" KeyPath="yes" Name="$(var.Helpers.TargetFileName)" Source="$(var.Helpers.TargetPath)" />
+      </Component>
+      <Component Id="Reply.Cluster.Mercury.Adapters.AdoNet.AdoNetAdapter.dll" Guid="{B553D996-ACD6-49CE-80A1-F3B0409966FA}">
+        <File Id="fil88C829AC631A6D5A28AE84250F3A92D7" KeyPath="yes" Name="$(var.AdoNetAdapter.TargetFileName)" Source="$(var.AdoNetAdapter.TargetPath)" />
+      </Component>
+      <Component Id="Reply.Cluster.Mercury.Adapters.AdoNet.AdoNetAdapter.Messages.dll" Guid="{7F49BE82-97E3-4DB9-9765-D15592C6C91C}">
+        <File Id="fil9672C3CBCA38F6E73CF33B4DF8C04D62" KeyPath="yes" Name="$(var.AdoNetAdapter.Messages.TargetFileName)" Source="$(var.AdoNetAdapter.Messages.TargetPath)" />
+      </Component>
+      <Component Id="Reply.Cluster.Mercury.Adapters.File.FileAdapter.dll" Guid="{5A7BE6CE-E3ED-4C4A-AE95-1ECD3EE3ED95}">
+        <File Id="fil4F41723451EDC24741645BDCD18BEB4B" KeyPath="yes" Name="$(var.FileAdapter.TargetFileName)" Source="$(var.FileAdapter.TargetPath)" />
+      </Component>
+      <Component Id="Reply.Cluster.Mercury.Adapters.Ftp.FtpAdapter.dll" Guid="{1B1F70A5-48BE-41A3-B3EC-E7769CC149D7}">
+        <File Id="filCFBEF35F0A66532E2994D59D072D9B80" KeyPath="yes" Name="$(var.FtpAdapter.TargetFileName)" Source="$(var.FtpAdapter.TargetPath)" />
+      </Component>
+      <Component Id="Reply.Cluster.Mercury.Adapters.Schedule.ScheduleAdapter.dll" Guid="{DD982649-65B9-41BE-A7B7-7F4FEC8F0C30}">
+        <File Id="fil1CD2F66C3DC2DA8928EEDE24B2BD7968" KeyPath="yes" Name="$(var.ScheduleAdapter.TargetFileName)" Source="$(var.ScheduleAdapter.TargetPath)" />
+      </Component>
+      <Component Id="Reply.Cluster.Mercury.Adapters.Schedule.ScheduleAdapter.Jobs.dll" Guid="{4DB1DCA3-4A4C-46BF-85E6-6ED3C6FEBE7A}">
+        <File Id="fil9B5A28E6751587DBD2D03BF7E83704D8" KeyPath="yes" Name="$(var.ScheduleAdapter.Jobs.TargetFileName)" Source="$(var.ScheduleAdapter.Jobs.TargetPath)" />
+      </Component>
+      <Component Id="Reply.Cluster.Mercury.Adapters.Schedule.ScheduleAdapter.Messages.dll" Guid="{3677F43D-E5D6-418C-964F-08A569F3BAAB}">
+        <File Id="fil0F4F3729CFD497A8F996D789546A2AEC" KeyPath="yes" Name="$(var.ScheduleAdapter.Messages.TargetFileName)" Source="$(var.ScheduleAdapter.Messages.TargetPath)" />
+      </Component>
+    </DirectoryRef>
+    <ComponentGroup Id="Reply.Cluster.Mercury.Adapters">
+      <ComponentRef Id="GAC_Common.Logging.dll" />
+      <ComponentRef Id="GAC_Quartz.dll" />
+      <ComponentRef Id="GAC_Reply.Cluster.Mercury.Adapters.Behaviors.dll" />
+      <ComponentRef Id="GAC_Reply.Cluster.Mercury.Adapters.Helpers.dll" />
+      <ComponentRef Id="Common.Logging.dll" />
+      <ComponentRef Id="Quartz.dll" />
+      <ComponentRef Id="Reply.Cluster.Mercury.Adapters.Behaviors.dll" />
+      <ComponentRef Id="Reply.Cluster.Mercury.Adapters.Helpers.dll" />
+    </ComponentGroup>
+    <ComponentGroup Id="Reply.Cluster.Mercury.Adapters.AdoNet">
+      <ComponentRef Id="GAC_Reply.Cluster.Mercury.Adapters.AdoNet.AdoNetAdapter.dll" />
+      <ComponentRef Id="GAC_Reply.Cluster.Mercury.Adapters.AdoNet.AdoNetAdapter.Messages.dll" />
+      <ComponentRef Id="Reply.Cluster.Mercury.Adapters.AdoNet.AdoNetAdapter.dll" />
+      <ComponentRef Id="Reply.Cluster.Mercury.Adapters.AdoNet.AdoNetAdapter.Messages.dll" />
+    </ComponentGroup>
+    <ComponentGroup Id="Reply.Cluster.Mercury.Adapters.Schedule">
+      <ComponentRef Id="GAC_Reply.Cluster.Mercury.Adapters.Schedule.ScheduleAdapter.dll" />
+      <ComponentRef Id="GAC_Reply.Cluster.Mercury.Adapters.Schedule.ScheduleAdapter.Jobs.dll" />
+      <ComponentRef Id="GAC_Reply.Cluster.Mercury.Adapters.Schedule.ScheduleAdapter.Messages.dll" />
+      <ComponentRef Id="Reply.Cluster.Mercury.Adapters.Schedule.ScheduleAdapter.dll" />
+      <ComponentRef Id="Reply.Cluster.Mercury.Adapters.Schedule.ScheduleAdapter.Jobs.dll" />
+      <ComponentRef Id="Reply.Cluster.Mercury.Adapters.Schedule.ScheduleAdapter.Messages.dll" />
+    </ComponentGroup>
+    <ComponentGroup Id="Reply.Cluster.Mercury.Adapters.File">
+      <ComponentRef Id="GAC_Reply.Cluster.Mercury.Adapters.File.FileAdapter.dll" />
+      <ComponentRef Id="Reply.Cluster.Mercury.Adapters.File.FileAdapter.dll" />
+    </ComponentGroup>
+    <ComponentGroup Id="Reply.Cluster.Mercury.Adapters.Ftp">
+      <ComponentRef Id="GAC_System.Net.FtpClient.dll" />
+      <ComponentRef Id="GAC_Reply.Cluster.Mercury.Adapters.Ftp.FtpAdapter.dll" />
+      <ComponentRef Id="System.Net.FtpClient.dll" />
+      <ComponentRef Id="Reply.Cluster.Mercury.Adapters.Ftp.FtpAdapter.dll" />
+    </ComponentGroup>
+  </Fragment>
+</Wix>
