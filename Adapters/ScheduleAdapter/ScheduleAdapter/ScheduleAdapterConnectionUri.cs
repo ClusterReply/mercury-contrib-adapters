@@ -54,7 +54,7 @@ namespace Reply.Cluster.Mercury.Adapters.Schedule
         public ScheduleAdapterConnectionUri(Uri uri)
             : base()
         {
-
+            Uri = uri;
         }
 
         #endregion Constructors
@@ -85,7 +85,7 @@ namespace Reply.Cluster.Mercury.Adapters.Schedule
         {
             get
             {
-                var builder = new UriBuilder(ScheduleAdapter.SCHEME, ScheduleName);
+                var builder = new UriBuilder(ScheduleAdapter.SCHEME, string.Empty, 0, ScheduleName);
                 return builder.Uri;
             }
             set
@@ -93,7 +93,7 @@ namespace Reply.Cluster.Mercury.Adapters.Schedule
                 if (value.Scheme != ScheduleAdapter.SCHEME)
                     throw new InvalidUriException(string.Format("Invalid scheme '{0}', was expected '{1}'.", value.Scheme, ScheduleAdapter.SCHEME));
 
-                ScheduleName = value.Host;
+                ScheduleName = value.AbsolutePath.Trim('/');
             }
         }
 
