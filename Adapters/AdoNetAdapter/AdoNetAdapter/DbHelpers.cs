@@ -202,21 +202,24 @@ namespace Reply.Cluster.Mercury.Adapters.AdoNet
             reader.MoveToContent();
             reader.Read();
 
-            do
+            if (parms.Count() > 0)
             {
-                string name = reader.LocalName;
+                do
+                {
+                    string name = reader.LocalName;
 
-                if (!parms.ContainsKey(name))
-                    throw new IndexOutOfRangeException(string.Format("Parameter '{0}' not found", name));
+                    if (!parms.ContainsKey(name))
+                        throw new IndexOutOfRangeException(string.Format("Parameter '{0}' not found", name));
 
-                var parameter = parms[name];
-                object value = serializers[parameter.DbType].ReadObject(reader, false);
+                    var parameter = parms[name];
+                    object value = serializers[parameter.DbType].ReadObject(reader, false);
 
-                if (value != null)
-                    parameter.Value = value;
-                else
-                    parameter.Value = DBNull.Value;
-            } while (reader.NodeType == XmlNodeType.Element);
+                    if (value != null)
+                        parameter.Value = value;
+                    else
+                        parameter.Value = DBNull.Value;
+                } while (reader.NodeType == XmlNodeType.Element);
+            }
         }
 
         private static void SetSourceParameters(Dictionary<string, object> values, DbParameterCollection parameters)
