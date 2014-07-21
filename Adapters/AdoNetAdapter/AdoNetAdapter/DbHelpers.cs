@@ -557,7 +557,7 @@ namespace Reply.Cluster.Mercury.Adapters.AdoNet
 
         private static Dictionary<string, DbParameter> GetPrecedureParameters(DbParameterCollection parameters)
         {
-            return parameters.Cast<DbParameter>().ToDictionary(p => string.IsNullOrEmpty(p.SourceColumn) ? p.ParameterName.TrimStart('@') : p.SourceColumn);
+            return parameters.Cast<DbParameter>().Where(p => p.Direction != ParameterDirection.ReturnValue).ToDictionary(p => string.IsNullOrEmpty(p.SourceColumn) ? p.ParameterName.TrimStart('@') : p.SourceColumn);
         }
 
         private static Dictionary<string, DbParameter> GetParameters(DbParameterCollection parameters)
